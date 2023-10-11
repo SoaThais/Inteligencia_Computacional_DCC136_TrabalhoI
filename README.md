@@ -1,1 +1,8 @@
-# Inteligencia_Computacional_DCC136_Trabalho_I
+# Inteligência Computacional - DCC136 - Trabalho I
+
+## Grupo: 
+* Alexandre Vitor Silva Braga
+* Thaís de Jesus Soares
+
+## Professora:
+* Luciana Brugiolo
