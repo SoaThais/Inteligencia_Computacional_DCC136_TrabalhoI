@@ -1,4 +1,5 @@
 #include "Grafo.hpp"
+#include <iomanip>
 
 Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax):
     _graphName(graphName),
@@ -11,16 +12,34 @@ Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHote
 
 }
 
-size_t Grafo::numeroDeVertices() const {
-    return this->listaVertices.size();
-}
-
 void Grafo::setaTamTrips(std::vector <float> tamTrips) {
     this->listaTamanhoTrips = tamTrips;
 }
 
+void Grafo::setaMatrizDists() {
+    this->matrizDist = calculaMatrizDistancias();
+}
+
 Vertice& Grafo::getVerticeById(size_t id) {
     return this->listaVertices.at(id - 1);
+}
+
+double Grafo::distanciaEuclidiana(Vertice a, Vertice b)
+{
+    return sqrt(pow((a.x() - b.x()), 2) + pow((a.y() - b.y()), 2));
+}
+
+double** Grafo::calculaMatrizDistancias() {
+    double **matrizDistancias = new double *[numeroDeVertices()];
+    for (size_t i = 0; i < numeroDeVertices(); i++) {
+        matrizDistancias[i] = new double[numeroDeVertices()];
+        for (size_t j = 0; j < numeroDeVertices(); j++) {
+            matrizDistancias[i][j] = distanciaEuclidiana(this->getVerticeById(i + 1), this->getVerticeById(j + 1));
+            //std::cerr << std::setprecision(2) << matrizDistancias[i][j] << " | ";
+        }
+        //std::cerr << std::endl;
+    }
+    return matrizDistancias;
 }
 
 std::vector <float> separaLinha(std::string linha){
@@ -106,64 +125,11 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
         g.listaVertices.push_back(Vertice(id, x, y, score, isHotel));
     }
 
+    g.setaMatrizDists();
+
     return g;
 }
 
-void Grafo::imprimeGrafoHelper(){
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Lista de Vertices: " << std::endl;
-    std::cout << std::endl;
-    for (size_t i = 0; i < numeroDeVertices(); i++) {
-        if(i == 0){ std::cout << "H_i" << " | ";}
-        else if(i == 1){ std::cout << "H_f" << " | ";}
-        else if(i < 2+this->_numeroHoteis)
-            { std::cout << "H" << i-2 << " | ";}
-        else{ std::cout << "V" << i-this->_numeroHoteis-2 << " | ";}
-
-        std::cout << this->listaVertices[i].toString() << std::endl;
-    }
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-}
-
-void Grafo::imprimeGrafo(){
-
-    std::cout << std::endl;
-    std::cout << "Instancia: " << this->_graphName << std::endl;
-    std::cout << std::endl;
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-    std::cout << "N: " << numeroDeVertices() << std::endl;
-    std::cout << "H: " << this->_numeroHoteis << std::endl;
-    std::cout << "D: " << this->_numeroTrips << std::endl;
-    std::cout << "T_Max: " << this->_tMax << std::endl;
-
-    std::cout << "T_d: ";
-
-    for (size_t i = 0; i < this->_numeroTrips; i++) {
-        std::cout << this->listaTamanhoTrips[i] << " | ";
-    }
-    std::cout << std::endl;
-
-    imprimeGrafoHelper();
-
-
-}
-
-void Grafo::imprimeListaVertices(listavertices_t verticesToPrint){
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-    for (size_t i = 0; i < verticesToPrint.size(); i++) {
-        if(verticesToPrint[i].isHotel())
-            { std::cout << "H" << i << " | ";}
-        else{ std::cout << "V" << i-this->_numeroHoteis-2 << " | ";}
-
-        std::cout << verticesToPrint[i].toString() << std::endl;
-    }
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-}
 
 listavertices_t Grafo::selecionaHoteisCandidatos(std::vector<Vertice> hoteis, int nTrips) {
 
@@ -195,11 +161,11 @@ listavertices_t Grafo::guloso(){
     //FASE CONSTRUTIVA
 
     //gera lista de candidatos com todos os hoteis
-    listavertices_t todosHoteisCandidatos(this->listaVertices.begin(), this->listaVertices.begin() + 2 + this->_numeroHoteis);
+    listavertices_t todosHoteisCandidatos(this->listaVertices.begin(), this->listaVertices.begin() + 2 + numeroDeHoteis());
     imprimeListaVertices(todosHoteisCandidatos);
 
     //seleciona [ntrips-1] candidatos entre h0 e hf para a lista
-    listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos, this->_numeroTrips);
+    listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos, numeroDeTrips());
 
     std::cout << "Lista de candidatos:" << std::endl;
     imprimeListaVertices(listaCandidatos);
@@ -214,37 +180,62 @@ void Grafo::geraSolucao(){
     listavertices_t solucao = guloso();
 }
 
+void Grafo::imprimeListaVertices(listavertices_t verticesToPrint){
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    for (size_t i = 0; i < verticesToPrint.size(); i++) {
+        if(verticesToPrint[i].isHotel())
+            { std::cout << "H" << i << " | ";}
+        else{ std::cout << "V" << i-numeroDeHoteis()-2 << " | ";}
 
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-double distancia(Vertice a, Vertice b)
-{
-    return sqrt(pow((a.x() - b.x()), 2) + pow((a.y() - b.y()), 2));
+        std::cout << verticesToPrint[i].toString() << std::endl;
+    }
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
 }
 
-double** Grafo::calculaMatrizDist(const size_t nVert) {
-    double **mDist = new double *[nVert];
-    for (size_t i = 0; i < nVert; i++) {
-        mDist[i] = new double[nVert];
-        for (size_t j = 0; j < nVert; j++) {
-            mDist[i][j] = distancia(this->getVerticeById(i + 1), this->getVerticeById(j + 1));
-        }
+void Grafo::imprimeGrafoHelper(){
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Lista de Vertices: " << std::endl;
+    std::cout << std::endl;
+    for (size_t i = 0; i < numeroDeVertices(); i++) {
+        if(i == 0){ std::cout << "H_i" << " | ";}
+        else if(i == 1){ std::cout << "H_f" << " | ";}
+        else if(i < 2 + numeroDeHoteis())
+            { std::cout << "H" << i - 2 << " | ";}
+        else{ std::cout << "V" << i - 2 - numeroDeHoteis() << " | ";}
+
+        std::cout << this->listaVertices[i].toString() << std::endl;
     }
-    return mDist;
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+}
+
+void Grafo::imprimeGrafo(){
+
+    std::cout << std::endl;
+    std::cout << "Instancia: " << graphName() << std::endl;
+    std::cout << std::endl;
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    std::cout << "N: " << numeroDeVertices() << std::endl;
+    std::cout << "H: " << numeroDeHoteis() << std::endl;
+    std::cout << "D: " << numeroDeTrips() << std::endl;
+    std::cout << "T_Max: " << this->_tMax << std::endl;
+
+    std::cout << "T_d: ";
+
+    for (size_t i = 0; i < numeroDeTrips(); i++) {
+        std::cout << this->listaTamanhoTrips[i] << " | ";
+    }
+    std::cout << std::endl;
+
+    imprimeGrafoHelper();
+
 }
 
 struct InfoSolucao {
-
+    double distanciaTotal;
+    double tempoViajando;
 };
-*/
