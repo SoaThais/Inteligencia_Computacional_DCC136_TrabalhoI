@@ -18,13 +18,9 @@
 using listavertices_t = std::vector<Vertice>;
 using listatour_t = std::vector<float>;
 
-//vetorzão
-//h0 - h5 - h7 - hf
-//ntrips + 1 hoteis
-//ntrips - 1 deles são aleatorios
 
-using listcand_t = std::set<size_t>;
-using solList_t = std::list<std::vector<size_t>>;
+// using listcand_t = std::set<size_t>;
+// using solList_t = std::list<std::vector<size_t>>;
 
 
 class Grafo {
@@ -38,8 +34,7 @@ class Grafo {
         listatour_t listaTamanhoTrips;
 
         Vertice& getVerticeById(size_t id);
-        double** calculaMatrizDist(const size_t nVert);
-        double distanciaTotal(solList_t& solList);
+        listavertices_t selecionaHoteisCandidatos(std::vector<Vertice> hoteis, int nTrips);
 
     public:
         Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax);
@@ -48,7 +43,11 @@ class Grafo {
         static Grafo lerArquivo(std::istream& arqEntrada, std::string nomeArquivo);
 
         void imprimeGrafo();
-        void imprimeListaVertices();
+        void imprimeGrafoHelper();
+        void imprimeListaVertices(listavertices_t listaVertice);
+
+        listavertices_t guloso();
+        void geraSolucao();
 
         size_t numeroDeVertices() const;
         std::string graphName() { return this->_graphName; };

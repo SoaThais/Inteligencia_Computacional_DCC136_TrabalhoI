@@ -109,7 +109,11 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
     return g;
 }
 
-void Grafo::imprimeListaVertices(){
+void Grafo::imprimeGrafoHelper(){
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Lista de Vertices: " << std::endl;
+    std::cout << std::endl;
     for (size_t i = 0; i < numeroDeVertices(); i++) {
         if(i == 0){ std::cout << "H_i" << " | ";}
         else if(i == 1){ std::cout << "H_f" << " | ";}
@@ -119,9 +123,17 @@ void Grafo::imprimeListaVertices(){
 
         std::cout << this->listaVertices[i].toString() << std::endl;
     }
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
 }
 
 void Grafo::imprimeGrafo(){
+
+    std::cout << std::endl;
+    std::cout << "Instancia: " << this->_graphName << std::endl;
+    std::cout << std::endl;
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
     std::cout << "N: " << numeroDeVertices() << std::endl;
     std::cout << "H: " << this->_numeroHoteis << std::endl;
     std::cout << "D: " << this->_numeroTrips << std::endl;
@@ -132,20 +144,90 @@ void Grafo::imprimeGrafo(){
     for (size_t i = 0; i < this->_numeroTrips; i++) {
         std::cout << this->listaTamanhoTrips[i] << " | ";
     }
-
-    std::cout << std::endl;
-    std::cout << "___________________________________________________________" << std::endl;
     std::cout << std::endl;
 
-    std::cout << "Lista de Vertices: " << std::endl;
-    std::cout << std::endl;
-    std::cout << "___________________________________________________________" << std::endl;
-    imprimeListaVertices();
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
+    imprimeGrafoHelper();
+
 
 }
 
+void Grafo::imprimeListaVertices(listavertices_t verticesToPrint){
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    for (size_t i = 0; i < verticesToPrint.size(); i++) {
+        if(verticesToPrint[i].isHotel())
+            { std::cout << "H" << i << " | ";}
+        else{ std::cout << "V" << i-this->_numeroHoteis-2 << " | ";}
+
+        std::cout << verticesToPrint[i].toString() << std::endl;
+    }
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+}
+
+listavertices_t Grafo::selecionaHoteisCandidatos(std::vector<Vertice> hoteis, int nTrips) {
+
+    listavertices_t resultado;
+
+    // Adiciona H_i
+    resultado.push_back(hoteis[0]);
+
+    // Seleciona nTrips-1 hotéis aleatórios entre H_i e H_f
+    for (int i = 0; i < nTrips-1; i++) {
+
+        //Pode repetir os hoteis
+        int j = 1 + rand() % (hoteis.size() - 1);
+        do
+        {
+            j = 1 + rand() % (hoteis.size() - 1);
+        } while (j == 1);
+        resultado.push_back(hoteis[j]);
+    }
+
+    // Adiciona H_f
+    resultado.push_back(hoteis[1]);
+
+    return resultado;
+}
+
+listavertices_t Grafo::guloso(){
+
+    //FASE CONSTRUTIVA
+
+    //gera lista de candidatos com todos os hoteis
+    listavertices_t todosHoteisCandidatos(this->listaVertices.begin(), this->listaVertices.begin() + 2 + this->_numeroHoteis);
+    imprimeListaVertices(todosHoteisCandidatos);
+
+    //seleciona [ntrips-1] candidatos entre h0 e hf para a lista
+    listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos, this->_numeroTrips);
+
+    std::cout << "Lista de candidatos:" << std::endl;
+    imprimeListaVertices(listaCandidatos);
+    //resultado deve ser (h0 - hx - hx - hf)
+
+    return listaCandidatos;
+    //FASE INSERÇÃO
+
+}
+
+void Grafo::geraSolucao(){
+    listavertices_t solucao = guloso();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 double distancia(Vertice a, Vertice b)
 {
     return sqrt(pow((a.x() - b.x()), 2) + pow((a.y() - b.y()), 2));
@@ -165,3 +247,4 @@ double** Grafo::calculaMatrizDist(const size_t nVert) {
 struct InfoSolucao {
 
 };
+*/
