@@ -85,7 +85,7 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
 
     Grafo g(graphName, nVertices, nHoteis, nTrips, tMax);
 
-    // setaTamTrips(tamTrips);
+    g.setaTamTrips(tamTrips);
 
     for (size_t i = 0; i < nVertices; i++) {
         std::string str_linha;
@@ -100,7 +100,7 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
         getline(arqEntrada, str_linha);
         sscanf(str_linha.c_str(), "%lf%lf%lf", &x, &y, &score);
 
-        if(i < nHoteis){
+        if(i < 2+nHoteis){
            isHotel = true;
         }
         g.listaVertices.push_back(Vertice(id, x, y, score, isHotel));
@@ -109,26 +109,41 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
     return g;
 }
 
+void Grafo::imprimeListaVertices(){
+    for (size_t i = 0; i < numeroDeVertices(); i++) {
+        if(i == 0){ std::cout << "H_i" << " | ";}
+        else if(i == 1){ std::cout << "H_f" << " | ";}
+        else if(i < 2+this->_numeroHoteis)
+            { std::cout << "H" << i-2 << " | ";}
+        else{ std::cout << "V" << i-this->_numeroHoteis-2 << " | ";}
+
+        std::cout << this->listaVertices[i].toString() << std::endl;
+    }
+}
+
 void Grafo::imprimeGrafo(){
     std::cout << "N: " << numeroDeVertices() << std::endl;
     std::cout << "H: " << this->_numeroHoteis << std::endl;
     std::cout << "D: " << this->_numeroTrips << std::endl;
     std::cout << "T_Max: " << this->_tMax << std::endl;
 
-    std::cout << "T_d: " << std::endl;
+    std::cout << "T_d: ";
 
-    // for (int i = 0; i < t_d.size(); i++) {
-    //     std::cout << t_d[i] << " ";
-    // }
+    for (size_t i = 0; i < this->_numeroTrips; i++) {
+        std::cout << this->listaTamanhoTrips[i] << " | ";
+    }
 
-    std::cout << "Vertices: " << std::endl;
+    std::cout << std::endl;
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
 
-    // for (const std::vector<float>& linha : this->listaVertices) {
-    //     for (float elemento : linha) {
-    //         std::cout << elemento << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
+    std::cout << "Lista de Vertices: " << std::endl;
+    std::cout << std::endl;
+    std::cout << "___________________________________________________________" << std::endl;
+    imprimeListaVertices();
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+
 }
 
 double distancia(Vertice a, Vertice b)

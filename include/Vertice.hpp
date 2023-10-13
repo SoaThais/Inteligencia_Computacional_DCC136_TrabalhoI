@@ -19,6 +19,8 @@ class Vertice {
         double y() const;
         double score();
         bool isHotel() const;
+
+        std::string toString();
 };
 
 #endif // VERTICE_HPP

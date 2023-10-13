@@ -46,7 +46,9 @@ class Grafo {
         void setaTamTrips(std::vector <float> tamTrips);
 
         static Grafo lerArquivo(std::istream& arqEntrada, std::string nomeArquivo);
+
         void imprimeGrafo();
+        void imprimeListaVertices();
 
         size_t numeroDeVertices() const;
         std::string graphName() { return this->_graphName; };
