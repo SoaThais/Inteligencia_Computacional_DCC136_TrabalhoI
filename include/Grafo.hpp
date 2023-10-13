@@ -48,12 +48,15 @@ class Grafo {
         double calculaVariancia(double media, double *distancias);
         double** calculaMatrizDistancias();
         Vertice maiorScore(listavertices_t vertices);
+        size_t particionamento(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem);
+        void auxQuickSort(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem);
+        listavertices_t quickSort(size_t idOrigem, listavertices_t verticesCandidatos);
 
         //Auxiliares Solucao
         listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips);
         Vertice selecionaCandidatoIdeal(listaids_t insereEntre, listavertices_t verticesCandidatos);
         listavertices_t insereCandidatos(listavertices_t listaCandidatos, listavertices_t verticesCandidatos);
-
+        
 
     public:
         Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax);
