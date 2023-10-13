@@ -58,12 +58,12 @@ int main(int argc, char **argv)
         seed = std::stol(argv[2]);
     }
 
+    //g.imprimeGrafo();
+
     srand(seed);
 
     tempo_t start = relogio_t::now();
 
-    //Gere solução Solution u = g.ig_percentage(alpha, beta, exec_ig, maxItIG);
-    //Solution u = g.ig_drones(alpha, 400);
     g.geraSolucao();
 
     tempo_t end = relogio_t::now();
@@ -72,5 +72,4 @@ int main(int argc, char **argv)
     double time = std::chrono::duration_cast<std::chrono::microseconds>((end)-(start)).count();
     std::cout << "Tempo Gasto: " << time << std::endl;
 
-    //g.imprimeGrafo();
 }
