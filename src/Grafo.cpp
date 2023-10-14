@@ -16,12 +16,17 @@ Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHote
     this->listaVertices.reserve(numeroDeVertices);
     this->listaVariancias.reserve(numeroDeVertices);
     this->listaTamanhoTrips.reserve(numeroDeTrips);
+    this->listaTamanhoMaxTrips.reserve(numeroDeTrips);
 }
 
 /*-----------Sets/Gets-----------*/
 
 void Grafo::setaTamMaxTrips(listatour_t tamTrips) {
     this->listaTamanhoMaxTrips = tamTrips;
+}
+
+void Grafo::setaTamTrips(listatour_t tamTrips) {
+    this->listaTamanhoTrips = tamTrips;
 }
 
 void Grafo::setaVariancias(listavariancias_t variancias) {
@@ -40,7 +45,6 @@ int Grafo::getVerticeIndex(listavertices_t verticeVector, Vertice v)
 {
     int index = -1;
     auto it = find(verticeVector.begin(), verticeVector.end(), v);
-    std::cout << "Hello Thais " << std::endl;
     if (it != verticeVector.end())
     {
         index = std::distance(verticeVector.begin(), it);
@@ -51,6 +55,19 @@ int Grafo::getVerticeIndex(listavertices_t verticeVector, Vertice v)
         std::cerr << "O elemento " << v.id() << " não foi encontrado " << std::endl;
     }
     return index;
+}
+
+void Grafo::atualizaTamanhoTrips(listavertices_t verticesTrip, size_t k){
+    // size_t k = numeroDeTrips();
+    for (int i = verticesTrip.size(); i >= 0; i--){
+        listaTamanhoTrips[k] += matrizDist[i - 1][i];
+        if (verticesTrip[i - 1].isHotel()){
+            if (verticesTrip[i - 1].id() == 0){
+                break;
+            }
+            // k -= 1;
+        }
+    }
 }
 
 /*-----------Auxiliares-----------*/
@@ -82,7 +99,6 @@ double** Grafo::calculaMatrizDistancias() {
         for (size_t j = 0; j < numeroDeVertices(); j++) {
             matrizDistancias[i][j] = distanciaEuclidiana(this->getVerticeById(i), this->getVerticeById(j));
             mediaAritmetica += matrizDistancias[i][j];
-            //if(i==1){std::cerr << std::setprecision(2) << matrizDistancias[i][j] << ",";}
         }
         mediaAritmetica = mediaAritmetica/numeroDeVertices();
         variancias.push_back(calculaVariancia(mediaAritmetica, matrizDistancias[i]));
@@ -171,8 +187,8 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
 
     listavertices_t possiveis0 = quickSort(insereEntre[0], clientesCandidatos);
     listavertices_t possiveis1 = quickSort(insereEntre[1], clientesCandidatos);
-    double menorDist0 = distanciaEuclidiana(getVerticeById(insereEntre[0]), possiveis0[0]);
-    double menorDist1 = distanciaEuclidiana(getVerticeById(insereEntre[1]), possiveis1[0]);
+    double menorDist0 = matrizDist[insereEntre[0]][possiveis0[0].id()];
+    double menorDist1 = matrizDist[insereEntre[1]][possiveis1[0].id()];
     double minimo = 1;
     size_t limitador = 5;
 
@@ -192,7 +208,7 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         listavariancias_t distancias0;
         do
         {
-            distancias0.push_back(distanciaEuclidiana(getVerticeById(insereEntre[0]), possiveis0[i]));
+            distancias0.push_back(matrizDist[insereEntre[0]][possiveis0[i].id()]);
             tolerancia0.push_back(possiveis0[i]);
             i = i + 1;
         } while (i <= limitador && distancias0[i] < menorDist0 + listaVariancias[insereEntre[0]]);
@@ -202,7 +218,7 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         listavariancias_t distancias1;
         do
         {
-            distancias1.push_back(distanciaEuclidiana(getVerticeById(insereEntre[1]), possiveis1[j]));
+            distancias1.push_back(matrizDist[insereEntre[1]][possiveis1[j].id()]);
             tolerancia1.push_back(possiveis1[j]);
             j = j + 1;
         } while (j <= limitador && distancias1[j] < menorDist1 + listaVariancias[insereEntre[1]]);
@@ -394,6 +410,10 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
     Grafo g(graphName, nVertices, nHoteis, nTrips, tMax);
 
     g.setaTamMaxTrips(tamTrips);
+
+    listatour_t tamTripInicial(nTrips, 0);
+
+    g.setaTamTrips(tamTripInicial);
 
     for (size_t i = 0; i < nVertices; i++) {
         std::string str_linha;

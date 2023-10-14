@@ -40,10 +40,12 @@ class Grafo {
 
         //Sets e Gets
         void setaTamMaxTrips(listatour_t tamTrips);
+        void setaTamTrips(listatour_t tamTrips);
         void setaVariancias(listavariancias_t variancias);
         void setaMatrizDists();
         Vertice& getVerticeById(size_t id);
         int getVerticeIndex(listavertices_t verticeVector, Vertice v);
+        void atualizaTamanhoTrips(listavertices_t verticesTour, size_t k);
 
         //Auxiliares
         double distanciaEuclidiana(Vertice a, Vertice b);
