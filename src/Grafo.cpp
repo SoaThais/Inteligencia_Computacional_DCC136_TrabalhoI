@@ -80,9 +80,11 @@ Vertice Grafo::maiorScore(listavertices_t vertices) {
   return maior;
 }
 
-listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t verticesCandidatos)
+listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandidatos)
 {
-    listavertices_t listaOrdenada = verticesCandidatos;
+    //De tamanho numeroDeClientes()
+    listavertices_t listaOrdenada = clientesCandidatos;
+
     auxQuickSort(listaOrdenada, 0, numeroDeVertices(), idOrigem);
     return listaOrdenada;
 }
@@ -105,11 +107,11 @@ size_t Grafo::particionamento(listavertices_t listaOrdenada, size_t p, size_t q,
 
     while(1)
     {
-        while (++i < numeroDeVertices() - numeroDeHoteis() - 2 && matrizDist[idOrigem][listaOrdenada[i].id()] < v)
+        while (++i < numeroDeClientes() && matrizDist[idOrigem][listaOrdenada[i].id()] < v)
         {
             if (idOrigem == listaOrdenada[i].id())
                 continue;
-            
+
             std::cout << " Id " << listaOrdenada[i].id() << std::endl;
             std::cout << "Matriz " << matrizDist[idOrigem][listaOrdenada[i].id()] << std::endl;
             std::cout << "i " << i << std::endl;
@@ -127,7 +129,7 @@ size_t Grafo::particionamento(listavertices_t listaOrdenada, size_t p, size_t q,
         }
         if (i >= j)
             break;
-        
+
         std::cout << "Troca1" << std::endl;
         std::swap(listaOrdenada[i], listaOrdenada[j]);
     }
@@ -142,11 +144,11 @@ size_t Grafo::particionamento(listavertices_t listaOrdenada, size_t p, size_t q,
 }
 
 
-Vertice Grafo::selecionaCandidatoIdeal(listaids_t insereEntre, listavertices_t verticesCandidatos){
+Vertice Grafo::selecionaCandidatoIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos){
 
     //calculaToleranciaPorTrip([h0,hx],[hx,hxx],[hxx,hf]) - calcula o de menor distancia com tolerancia
     //h0 [v1,v5] hx [v2,v8] hxx [v3,v7] hf
-    listavertices_t possiveis = quickSort(insereEntre[0], verticesCandidatos);
+    listavertices_t possiveis = quickSort(insereEntre[0], clientesCandidatos);
     imprimeListaVertices(possiveis);
 
     //escolheIdealPorTrip([h0,hx],[hx,hxx],[hxx,hf]) - pega o de maior pontuação
@@ -182,7 +184,7 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
 }
 
 
-listavertices_t Grafo::insereCandidatos(listavertices_t listaCandidatos, listavertices_t verticesCandidatos) {
+listavertices_t Grafo::insereCandidatos(listavertices_t listaCandidatos, listavertices_t clientesCandidatos) {
 
     for (int i = listaCandidatos.size() - 1; i > 0; i--) {
 
@@ -191,7 +193,7 @@ listavertices_t Grafo::insereCandidatos(listavertices_t listaCandidatos, listave
         insereEntre.push_back(listaCandidatos.at(i-1).id());
         std::cout << "Vai inserir entre: " << insereEntre[0] << " e " << insereEntre[1] << std::endl;
 
-        Vertice v = selecionaCandidatoIdeal(insereEntre, verticesCandidatos);
+        Vertice v = selecionaCandidatoIdeal(insereEntre, clientesCandidatos);
         // Vertice v(10, 5, 6, 7, false);
 
         listaCandidatos.insert(listaCandidatos.begin() + i, v);
@@ -199,7 +201,7 @@ listavertices_t Grafo::insereCandidatos(listavertices_t listaCandidatos, listave
     return listaCandidatos;
 }
 
-listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertices_t todosVerticesCandidatos){
+listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertices_t todosClientesCandidatos){
 
     //FASE CONSTRUTIVA
 
@@ -215,7 +217,7 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
         //inserePorTour([h0,hf]) - aloca espaços para inserção (verificando se cada trip não passou do limite)
         //h0 va hx vb hxx vc hf
         //h0 va v1 vb hx vc v2 vd hxx ve v3 vf hf
-        listaCandidatos = insereCandidatos(listaCandidatos, todosVerticesCandidatos);
+        listaCandidatos = insereCandidatos(listaCandidatos, todosClientesCandidatos);
 
     //}
 
@@ -233,10 +235,10 @@ void Grafo::geraSolucao(){
     listavertices_t todosHoteisCandidatos(this->listaVertices.begin(), this->listaVertices.begin() + 2 + numeroDeHoteis());
     imprimeListaVertices(todosHoteisCandidatos);
 
-    listavertices_t todosVerticesCandidatos(this->listaVertices.begin() + 2 + numeroDeHoteis(), this->listaVertices.end());
-    imprimeListaVertices(todosVerticesCandidatos);
+    listavertices_t todosClientesCandidatos(this->listaVertices.begin() + 2 + numeroDeHoteis(), this->listaVertices.end());
+    imprimeListaVertices(todosClientesCandidatos);
 
-    listavertices_t solucao = guloso(todosHoteisCandidatos, todosVerticesCandidatos);
+    listavertices_t solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
 
 }
 

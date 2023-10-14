@@ -56,7 +56,7 @@ class Grafo {
         listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips);
         Vertice selecionaCandidatoIdeal(listaids_t insereEntre, listavertices_t verticesCandidatos);
         listavertices_t insereCandidatos(listavertices_t listaCandidatos, listavertices_t verticesCandidatos);
-        
+
 
     public:
         Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax);
@@ -76,6 +76,7 @@ class Grafo {
         //Gets
         size_t numeroDeVertices() const { return this->listaVertices.size(); };
         size_t numeroDeHoteis() const { return this->_numeroHoteis; };
+        size_t numeroDeClientes() const { return numeroDeVertices()-numeroDeHoteis()-2; };
         size_t numeroDeTrips() const { return this->_numeroTrips; };
         size_t tamanhoMaximo() const { return this->_tMax; };
         std::string graphName() const { return this->_graphName; };
