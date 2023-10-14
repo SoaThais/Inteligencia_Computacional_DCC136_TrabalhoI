@@ -45,7 +45,7 @@ class Grafo {
         void setaMatrizDists();
         Vertice& getVerticeById(size_t id);
         int getVerticeIndex(listavertices_t verticeVector, Vertice v);
-        void atualizaTamanhoTrips(listavertices_t verticesTour, size_t k);
+        void calculaTamanhoTripK(listavertices_t verticesTour, size_t k);
 
         //Auxiliares
         double distanciaEuclidiana(Vertice a, Vertice b);
@@ -77,6 +77,7 @@ class Grafo {
         void imprimeGrafoHelper();
         void imprimeListaVertices(listavertices_t listaVertice);
         void imprimeListaOrdenada(listavertices_t verticesToPrint, size_t idOrigem);
+        void imprimeListaTripTour();
 
         //Gets
         size_t numeroDeVertices() const { return this->listaVertices.size(); };
