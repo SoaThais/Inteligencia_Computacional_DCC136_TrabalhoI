@@ -164,6 +164,10 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
 
 Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos){
 
+    if (clientesCandidatos.size() == 1){
+        return clientesCandidatos[0];
+    }
+
     //calculaToleranciaPorTrip([h0,hx],[hx,hxx],[hxx,hf]) - calcula o de menor distancia com tolerancia
     //h0 [v1,v5] hx [v2,v8] hxx [v3,v7] hf
     Vertice v(0, 0, 0, 0, false);
@@ -173,6 +177,7 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
     double menorDist0 = distanciaEuclidiana(getVerticeById(insereEntre[0]), possiveis0[0]);
     double menorDist1 = distanciaEuclidiana(getVerticeById(insereEntre[1]), possiveis1[0]);
     double minimo = 1;
+    size_t limitador = 5;
 
     if(menorDist0 <= minimo){
         v = possiveis0[0];
@@ -180,11 +185,12 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
     else if(menorDist1 <= minimo){
         v = possiveis1[0];
     }
+    else if (clientesCandidatos.size() <= limitador){
+        v = maiorScore(clientesCandidatos);
+    }
     else{
 
-        int limitador = 5;
-
-        int i = 0;
+        size_t i = 0;
         listavertices_t tolerancia0;
         listavariancias_t distancias0;
         do
@@ -193,7 +199,7 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
             tolerancia0.push_back(possiveis0[i]);
         } while (distancias0[i] < menorDist0 + listaVariancias[insereEntre[0]] && i <= limitador);
 
-        int j = 0;
+        size_t j = 0;
         listavertices_t tolerancia1;
         listavariancias_t distancias1;
 
@@ -204,17 +210,16 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         } while (distancias1[j] < menorDist1 + listaVariancias[insereEntre[1]] && j <= limitador);
 
         listavertices_t toleranciaCombo;
-        for(int k = 0; k < limitador; k++){
+        for(size_t k = 0; k < limitador; k++){
             if(distancias0[k] <= distancias1[k])
                 toleranciaCombo.push_back(tolerancia0[k]);
             else
                 toleranciaCombo.push_back(tolerancia1[k]);
         }
+        std::cout << "Combo: " << std::endl;
+        imprimeListaVertices(toleranciaCombo);
 
-        //escolheIdealPorTrip([h0,hx],[hx,hxx],[hxx,hf]) - pega o de maior pontuação
-        //h0 v5 hx v2 hxx v7 hf
         v = maiorScore(toleranciaCombo);
-
     }
 
     return v;
@@ -230,17 +235,25 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
     {
         for (int i = listaCandidatos.size() - 1; i > 0; i--) {
 
-            if(clientesCandidatos.empty()){breakFlag = ERR_EMPTY_CANDIDATES;}
-            if(clientesCandidatos.size() < listaCandidatos.size()-1){breakFlag = ERR_NOT_ENOUGH_CANDIDATES;}
+            if(clientesCandidatos.empty()){
+                breakFlag = ERR_EMPTY_CANDIDATES;
+                break;
+            }
+            // if(clientesCandidatos.size() < listaCandidatos.size() - 1){
+            //     breakFlag = ERR_NOT_ENOUGH_CANDIDATES;
+            // }
+
+            // imprimeListaVertices(clientesCandidatos);
+
             listaids_t insereEntre;
 
             insereEntre.push_back(listaCandidatos.at(i).id());
             insereEntre.push_back(listaCandidatos.at(i-1).id());
 
+            std::cout << "Vai inserir entre: " << insereEntre[0] << " e " << insereEntre[1];
 
             Vertice v = selecionaClienteIdeal(insereEntre, clientesCandidatos);
 
-            std::cout << "Vai inserir entre: " << insereEntre[0] << " e " << insereEntre[1];
             std::cout << " o vertice " << v.id() << std::endl;
 
             listaCandidatos.insert(listaCandidatos.begin() + i, v);
