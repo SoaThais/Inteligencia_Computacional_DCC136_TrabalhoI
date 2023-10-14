@@ -35,10 +35,11 @@ class Grafo {
         listavertices_t listaVertices;
         listavariancias_t listaVariancias;
         listatour_t listaTamanhoTrips;
+        listatour_t listaTamanhoMaxTrips;
         double** matrizDist;
 
         //Sets e Gets
-        void setaTamTrips(listatour_t tamTrips);
+        void setaTamMaxTrips(listatour_t tamTrips);
         void setaVariancias(listavariancias_t variancias);
         void setaMatrizDists();
         Vertice& getVerticeById(size_t id);

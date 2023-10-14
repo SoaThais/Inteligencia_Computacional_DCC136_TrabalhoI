@@ -4,7 +4,8 @@
 
 
 #define ERR_EMPTY_CANDIDATES             1
-#define ERR_NOT_ENOUGH_CANDIDATES        2
+#define ERR_VERTEX_NON_EXIST             2
+#define ERR_BIG_DISTANCE                 3
 
 Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax):
     _graphName(graphName),
@@ -19,8 +20,8 @@ Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHote
 
 /*-----------Sets/Gets-----------*/
 
-void Grafo::setaTamTrips(listatour_t tamTrips) {
-    this->listaTamanhoTrips = tamTrips;
+void Grafo::setaTamMaxTrips(listatour_t tamTrips) {
+    this->listaTamanhoMaxTrips = tamTrips;
 }
 
 void Grafo::setaVariancias(listavariancias_t variancias) {
@@ -58,17 +59,17 @@ double Grafo::distanciaEuclidiana(Vertice a, Vertice b)
 {
     return sqrt(pow((a.x() - b.x()), 2) + pow((a.y() - b.y()), 2));
 }
+
 double Grafo::calculaVariancia(double media, double *distancias)
 {
     double variancia = 0;
-
     for(size_t k = 0; k < numeroDeVertices(); k++){
         variancia += pow((distancias[k]-media), 2);
     }
     variancia = variancia/numeroDeVertices();
-    //std::cerr << "Variancia: " << variancia << std::endl;
     return variancia;
 }
+
 double** Grafo::calculaMatrizDistancias() {
 
     double **matrizDistancias = new double *[numeroDeVertices()];
@@ -139,8 +140,6 @@ listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandid
     listavertices_t listaOrdenada = clientesCandidatos;
     auxQuickSort(listaOrdenada, 0, clientesCandidatos.size()-1, idOrigem);
 
-    //std::cout << "LISTA ORDENADA" << std::endl;
-    //imprimeListaOrdenada(listaOrdenada, idOrigem);
     return listaOrdenada;
 }
 
@@ -168,8 +167,6 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         return clientesCandidatos[0];
     }
 
-    //calculaToleranciaPorTrip([h0,hx],[hx,hxx],[hxx,hf]) - calcula o de menor distancia com tolerancia
-    //h0 [v1,v5] hx [v2,v8] hxx [v3,v7] hf
     Vertice v(0, 0, 0, 0, false);
 
     listavertices_t possiveis0 = quickSort(insereEntre[0], clientesCandidatos);
@@ -195,29 +192,39 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         listavariancias_t distancias0;
         do
         {
-            distancias0.push_back(distanciaEuclidiana(getVerticeById(insereEntre[0]), possiveis0[++i]));
+            distancias0.push_back(distanciaEuclidiana(getVerticeById(insereEntre[0]), possiveis0[i]));
             tolerancia0.push_back(possiveis0[i]);
-        } while (distancias0[i] < menorDist0 + listaVariancias[insereEntre[0]] && i <= limitador);
+            i = i + 1;
+        } while (i <= limitador && distancias0[i] < menorDist0 + listaVariancias[insereEntre[0]]);
 
         size_t j = 0;
         listavertices_t tolerancia1;
         listavariancias_t distancias1;
-
         do
         {
-            distancias1.push_back(distanciaEuclidiana(getVerticeById(insereEntre[1]), possiveis1[++j]));
+            distancias1.push_back(distanciaEuclidiana(getVerticeById(insereEntre[1]), possiveis1[j]));
             tolerancia1.push_back(possiveis1[j]);
-        } while (distancias1[j] < menorDist1 + listaVariancias[insereEntre[1]] && j <= limitador);
+            j = j + 1;
+        } while (j <= limitador && distancias1[j] < menorDist1 + listaVariancias[insereEntre[1]]);
 
         listavertices_t toleranciaCombo;
         for(size_t k = 0; k < limitador; k++){
-            if(distancias0[k] <= distancias1[k])
+            if(k < i && k < j){
+                if(distancias0[k] <= distancias1[k])
+                    toleranciaCombo.push_back(tolerancia0[k]);
+                else
+                    toleranciaCombo.push_back(tolerancia1[k]);
+            }
+            else if(k < i && k >= j){
                 toleranciaCombo.push_back(tolerancia0[k]);
-            else
+            }
+            else if(k >= i && k < j){
                 toleranciaCombo.push_back(tolerancia1[k]);
+            }
+            else{
+                v = maiorScore(tolerancia0);
+            }
         }
-        std::cout << "Combo: " << std::endl;
-        imprimeListaVertices(toleranciaCombo);
 
         v = maiorScore(toleranciaCombo);
     }
@@ -227,40 +234,47 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
 
 listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos) {
 
-    //inserePorTour([h0,hf]) - aloca espaços para inserção (verificando se cada trip não passou do limite)
-    //h0 va hx vb hxx vc hf
     int breakFlag = 0;
     int k = 0;
     do
     {
+        size_t tripAtual = numeroDeTrips();
         for (int i = listaCandidatos.size() - 1; i > 0; i--) {
 
             if(clientesCandidatos.empty()){
                 breakFlag = ERR_EMPTY_CANDIDATES;
                 break;
             }
-            // if(clientesCandidatos.size() < listaCandidatos.size() - 1){
-            //     breakFlag = ERR_NOT_ENOUGH_CANDIDATES;
+
+            // if(/*calculaTamanhoTotalTour > Tmax*/){
+            //     breakFlag = ERR_EMPTY_CANDIDATES;
+            //     break;
             // }
 
-            // imprimeListaVertices(clientesCandidatos);
-
             listaids_t insereEntre;
-
             insereEntre.push_back(listaCandidatos.at(i).id());
             insereEntre.push_back(listaCandidatos.at(i-1).id());
 
-            std::cout << "Vai inserir entre: " << insereEntre[0] << " e " << insereEntre[1];
+            if (getVerticeById(insereEntre[1]).isHotel()) tripAtual--;
 
             Vertice v = selecionaClienteIdeal(insereEntre, clientesCandidatos);
 
-            std::cout << " o vertice " << v.id() << std::endl;
+            std::cout << std::endl;
+            std::cout << "______________PREPARA_PARA_INSERIR_______________" << std::endl;
+            std::cout << std::endl;
+            std::cout << "Vai inserir entre: " << insereEntre[0] << " e " << insereEntre[1] << " o vertice " << v.id() << std::endl;
 
             listaCandidatos.insert(listaCandidatos.begin() + i, v);
 
+            if(v.id() > numeroDeVertices()){
+                breakFlag = ERR_VERTEX_NON_EXIST;
+                break;
+            }
+
+            //AtualizaListaTrips(tripAtual);
+
             int posicao = getVerticeIndex(clientesCandidatos, v);
             clientesCandidatos.erase(clientesCandidatos.begin() + posicao);
-            //remove v de clientesCandidatos
 
         }
 
@@ -281,12 +295,15 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
     //seleciona [ntrips-1] candidatos entre h0 e hf para a lista
     listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos, numeroDeTrips());
 
-    std::cout << "Lista de candidatos:" << std::endl;
+    std::cout << "________________ETAPA_CONSTRUTIVA_________________" << std::endl;
+    std::cout << std::endl;
     imprimeListaVertices(listaCandidatos);
 
     //FASE INSERÇÃO
 
     //insere vertices clientes
+    std::cout << "________________ETAPA_DE_INSERCAO_________________" << std::endl;
+    std::cout << std::endl;
     listaCandidatos = insereClientes(listaCandidatos, todosClientesCandidatos);
 
     return listaCandidatos;
@@ -296,9 +313,18 @@ void Grafo::geraSolucao(){
 
     //gera lista de candidatos com todos os hoteis
     listavertices_t todosHoteisCandidatos(this->listaVertices.begin(), this->listaVertices.begin() + 2 + numeroDeHoteis());
+
+    std::cout << std::endl;
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    std::cout << "________________LISTA_DE_HOTEIS_CANDIDATOS_________________" << std::endl;
+    std::cout << std::endl;
     imprimeListaVertices(todosHoteisCandidatos);
 
     listavertices_t todosClientesCandidatos(this->listaVertices.begin() + 2 + numeroDeHoteis(), this->listaVertices.end());
+
+    std::cout << "___________LISTA_DE_PONTOS_TURISTICOS_CANDIDATOS____________" << std::endl;
+    std::cout << std::endl;
     imprimeListaVertices(todosClientesCandidatos);
 
     listavertices_t solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
@@ -367,13 +393,10 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
 
     Grafo g(graphName, nVertices, nHoteis, nTrips, tMax);
 
-    g.setaTamTrips(tamTrips);
+    g.setaTamMaxTrips(tamTrips);
 
     for (size_t i = 0; i < nVertices; i++) {
         std::string str_linha;
-
-        //id = 0, Hotel Inicial
-        //id = 1, Hotel Final
 
         size_t id = i;
         double x, y, score;
