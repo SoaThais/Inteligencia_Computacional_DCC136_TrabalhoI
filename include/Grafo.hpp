@@ -48,8 +48,8 @@ class Grafo {
         double calculaVariancia(double media, double *distancias);
         double** calculaMatrizDistancias();
         Vertice maiorScore(listavertices_t vertices);
-        size_t particionamento(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem);
-        void auxQuickSort(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem);
+        size_t particionamento(listavertices_t& listaOrdenada, size_t p, size_t q, size_t idOrigem);
+        void auxQuickSort(listavertices_t& listaOrdenada, size_t p, size_t q, size_t idOrigem);
         listavertices_t quickSort(size_t idOrigem, listavertices_t verticesCandidatos);
 
         //Auxiliares Solucao

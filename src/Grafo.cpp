@@ -78,14 +78,14 @@ Vertice Grafo::maiorScore(listavertices_t vertices) {
   return maior;
 }
 
-size_t Grafo::particionamento(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem)
+size_t Grafo::particionamento(listavertices_t& listaOrdenada, size_t p, size_t q, size_t idOrigem)
 {
     size_t i = p - 1, j = q;
     double v = matrizDist[idOrigem][listaOrdenada[q].id()];
 
     while(1)
     {
-        while (++i < numeroDeClientes() && matrizDist[idOrigem][listaOrdenada[i].id()] < v)
+        while (++i < listaOrdenada.size() && matrizDist[idOrigem][listaOrdenada[i].id()] < v)
         {
             if (idOrigem == listaOrdenada[i].id())
                 continue;
@@ -102,7 +102,7 @@ size_t Grafo::particionamento(listavertices_t listaOrdenada, size_t p, size_t q,
     std::swap(listaOrdenada[i], listaOrdenada[q]);
     return i;
 }
-void Grafo::auxQuickSort(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem)
+void Grafo::auxQuickSort(listavertices_t& listaOrdenada, size_t p, size_t q, size_t idOrigem)
 {
     if (p < q)
     {
@@ -117,8 +117,8 @@ listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandid
     listavertices_t listaOrdenada = clientesCandidatos;
     auxQuickSort(listaOrdenada, 0, numeroDeClientes()-1, idOrigem);
 
-    std::cout << "LISTA ORDENADA" << std::endl;
-    imprimeListaOrdenada(listaOrdenada, idOrigem);
+    //std::cout << "LISTA ORDENADA" << std::endl;
+    //imprimeListaOrdenada(listaOrdenada, idOrigem);
     return listaOrdenada;
 }
 
