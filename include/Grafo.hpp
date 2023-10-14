@@ -54,8 +54,8 @@ class Grafo {
 
         //Auxiliares Solucao
         listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips);
-        Vertice selecionaCandidatoIdeal(listaids_t insereEntre, listavertices_t verticesCandidatos);
-        listavertices_t insereCandidatos(listavertices_t listaCandidatos, listavertices_t verticesCandidatos);
+        Vertice selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos);
+        listavertices_t insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos);
 
 
     public:
@@ -72,6 +72,7 @@ class Grafo {
         void imprimeGrafo();
         void imprimeGrafoHelper();
         void imprimeListaVertices(listavertices_t listaVertice);
+        void imprimeListaOrdenada(listavertices_t verticesToPrint, size_t idOrigem);
 
         //Gets
         size_t numeroDeVertices() const { return this->listaVertices.size(); };

@@ -36,7 +36,6 @@ double Grafo::distanciaEuclidiana(Vertice a, Vertice b)
 {
     return sqrt(pow((a.x() - b.x()), 2) + pow((a.y() - b.y()), 2));
 }
-
 double Grafo::calculaVariancia(double media, double *distancias)
 {
     double variancia = 0;
@@ -48,7 +47,6 @@ double Grafo::calculaVariancia(double media, double *distancias)
     //std::cerr << "Variancia: " << variancia << std::endl;
     return variancia;
 }
-
 double** Grafo::calculaMatrizDistancias() {
 
     double **matrizDistancias = new double *[numeroDeVertices()];
@@ -80,31 +78,6 @@ Vertice Grafo::maiorScore(listavertices_t vertices) {
   return maior;
 }
 
-listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandidatos)
-{
-    //De tamanho numeroDeClientes()
-    listavertices_t listaOrdenada = clientesCandidatos;
-    //std::cout << "Clientes " << numeroDeClientes() << std::endl;
-
-    auxQuickSort(listaOrdenada, 0, numeroDeClientes()-1, idOrigem);
-
-    imprimeListaVertices(listaOrdenada);
-
-    return listaOrdenada;
-}
-
-void Grafo::auxQuickSort(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem)
-{
-    if (p < q)
-    {
-        //std::cout << "q " << q << std::endl;
-        size_t j = particionamento(listaOrdenada, p, q, idOrigem);
-        if(j != 0)
-            auxQuickSort(listaOrdenada, p, j - 1, idOrigem);
-        auxQuickSort(listaOrdenada, j + 1, q, idOrigem);
-    }
-}
-
 size_t Grafo::particionamento(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem)
 {
     size_t i = p - 1, j = q;
@@ -116,41 +89,58 @@ size_t Grafo::particionamento(listavertices_t listaOrdenada, size_t p, size_t q,
         {
             if (idOrigem == listaOrdenada[i].id())
                 continue;
-
-            // std::cout << " Id " << listaOrdenada[i].id() << std::endl;
-            // std::cout << "Matriz " << matrizDist[idOrigem][listaOrdenada[i].id()] << std::endl;
-            // std::cout << "i " << i << std::endl;
         }
-        // std::cout << "saiu" << std::endl;
-        // std::cout << "i " << i << std::endl;
-        // std::cout << "j " << j << std::endl;
-        // std::cout << "p " << p << std::endl;
-        // std::cout << "q " << q << std::endl;
         while (v < matrizDist[idOrigem][listaOrdenada[--j].id()])
         {
-            // std::cout << "j " << j << std::endl;
-            // std::cout << "p " << p << std::endl;
             if (j == p)
                 break;
         }
         if (i >= j)
             break;
-
-        // std::cout << "Troca1" << std::endl;
         std::swap(listaOrdenada[i], listaOrdenada[j]);
     }
-
-    // std::cout << "Troca2" << std::endl;
-    // std::cout << "i " << i <<  " Matriz " << matrizDist[idOrigem][listaOrdenada[i].id()] << std::endl;
-    // std::cout << "q " << q <<  " Matriz " << matrizDist[idOrigem][listaOrdenada[q].id()] << std::endl;
     std::swap(listaOrdenada[i], listaOrdenada[q]);
-    // std::cout << "Troca2Saiu" << std::endl;
-    // std::cout << "iii " << i << std::endl;
     return i;
 }
+void Grafo::auxQuickSort(listavertices_t listaOrdenada, size_t p, size_t q, size_t idOrigem)
+{
+    if (p < q)
+    {
+        size_t j = particionamento(listaOrdenada, p, q, idOrigem);
+        if(j != 0)
+            auxQuickSort(listaOrdenada, p, j - 1, idOrigem);
+        auxQuickSort(listaOrdenada, j + 1, q, idOrigem);
+    }
+}
+listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandidatos)
+{
+    listavertices_t listaOrdenada = clientesCandidatos;
+    auxQuickSort(listaOrdenada, 0, numeroDeClientes()-1, idOrigem);
 
+    std::cout << "LISTA ORDENADA" << std::endl;
+    imprimeListaOrdenada(listaOrdenada, idOrigem);
+    return listaOrdenada;
+}
 
-Vertice Grafo::selecionaCandidatoIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos){
+listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips) {
+
+    listavertices_t resultado;
+    resultado.push_back(hoteis[0]);
+
+    for (int i = 0; i < nTrips-1; i++) {
+        int j = 1 + rand() % (hoteis.size() - 1);
+        do
+        {
+            j = 1 + rand() % (hoteis.size() - 1);
+        } while (j == 1);
+        resultado.push_back(hoteis[j]);
+    }
+    resultado.push_back(hoteis[1]);
+
+    return resultado;
+}
+
+Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos){
 
     //calculaToleranciaPorTrip([h0,hx],[hx,hxx],[hxx,hf]) - calcula o de menor distancia com tolerancia
     //h0 [v1,v5] hx [v2,v8] hxx [v3,v7] hf
@@ -165,33 +155,7 @@ Vertice Grafo::selecionaCandidatoIdeal(listaids_t insereEntre, listavertices_t c
     return v;
 }
 
-listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips) {
-
-    listavertices_t resultado;
-
-    // Adiciona H_i
-    resultado.push_back(hoteis[0]);
-
-    // Seleciona nTrips-1 hotéis aleatórios entre H_i e H_f
-    for (int i = 0; i < nTrips-1; i++) {
-
-        //Pode repetir os hoteis
-        int j = 1 + rand() % (hoteis.size() - 1);
-        do
-        {
-            j = 1 + rand() % (hoteis.size() - 1);
-        } while (j == 1);
-        resultado.push_back(hoteis[j]);
-    }
-
-    // Adiciona H_f
-    resultado.push_back(hoteis[1]);
-
-    return resultado;
-}
-
-
-listavertices_t Grafo::insereCandidatos(listavertices_t listaCandidatos, listavertices_t clientesCandidatos) {
+listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos) {
 
     for (int i = listaCandidatos.size() - 1; i > 0; i--) {
 
@@ -200,7 +164,7 @@ listavertices_t Grafo::insereCandidatos(listavertices_t listaCandidatos, listave
         insereEntre.push_back(listaCandidatos.at(i-1).id());
         std::cout << "Vai inserir entre: " << insereEntre[0] << " e " << insereEntre[1] << std::endl;
 
-        Vertice v = selecionaCandidatoIdeal(insereEntre, clientesCandidatos);
+        Vertice v = selecionaClienteIdeal(insereEntre, clientesCandidatos);
         // Vertice v(10, 5, 6, 7, false);
 
         listaCandidatos.insert(listaCandidatos.begin() + i, v);
@@ -224,7 +188,7 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
         //inserePorTour([h0,hf]) - aloca espaços para inserção (verificando se cada trip não passou do limite)
         //h0 va hx vb hxx vc hf
         //h0 va v1 vb hx vc v2 vd hxx ve v3 vf hf
-        listaCandidatos = insereCandidatos(listaCandidatos, todosClientesCandidatos);
+        listaCandidatos = insereClientes(listaCandidatos, todosClientesCandidatos);
 
     //}
 
@@ -387,6 +351,21 @@ void Grafo::imprimeListaVertices(listavertices_t verticesToPrint){
         else{ std::cout << "V" << verticesToPrint[i].id() << " | ";}
 
         std::cout << verticesToPrint[i].toString() << std::endl;
+    }
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+}
+
+void Grafo::imprimeListaOrdenada(listavertices_t verticesToPrint, size_t idOrigem){
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    for (size_t i = 0; i < verticesToPrint.size(); i++) {
+        if(verticesToPrint[i].isHotel())
+            { std::cout << "H" << verticesToPrint[i].id() << " | ";}
+        else{ std::cout << "V" << verticesToPrint[i].id() << " | ";}
+
+        std::cout << verticesToPrint[i].toString() << " | ";
+        std::cout << this->matrizDist[idOrigem][verticesToPrint[i].id()] << std::endl;
     }
     std::cout << "___________________________________________________________" << std::endl;
     std::cout << std::endl;
