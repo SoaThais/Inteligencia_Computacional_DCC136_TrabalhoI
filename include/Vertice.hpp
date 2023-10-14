@@ -19,7 +19,9 @@ class Vertice {
         double y() const;
         double score();
         bool isHotel() const;
-
+        bool operator==(const Vertice& other) const {
+            return (this->id() == other.id());
+        }
         std::string toString();
 };
 

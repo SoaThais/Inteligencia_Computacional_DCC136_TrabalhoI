@@ -42,6 +42,7 @@ class Grafo {
         void setaVariancias(listavariancias_t variancias);
         void setaMatrizDists();
         Vertice& getVerticeById(size_t id);
+        int getVerticeIndex(listavertices_t verticeVector, Vertice v);
 
         //Auxiliares
         double distanciaEuclidiana(Vertice a, Vertice b);
