@@ -61,7 +61,7 @@ double** Grafo::calculaMatrizDistancias() {
         for (size_t j = 0; j < numeroDeVertices(); j++) {
             matrizDistancias[i][j] = distanciaEuclidiana(this->getVerticeById(i + 1), this->getVerticeById(j + 1));
             mediaAritmetica += matrizDistancias[i][j];
-            //if(i==0){std::cerr << std::setprecision(2) << matrizDistancias[i][j] << ",";}
+            if(i==1){std::cerr << std::setprecision(2) << matrizDistancias[i][j] << ",";}
         }
         mediaAritmetica = mediaAritmetica/numeroDeVertices();
         variancias.push_back(calculaVariancia(mediaAritmetica, matrizDistancias[i]));
@@ -84,8 +84,12 @@ listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandid
 {
     //De tamanho numeroDeClientes()
     listavertices_t listaOrdenada = clientesCandidatos;
+    //std::cout << "Clientes " << numeroDeClientes() << std::endl;
 
-    auxQuickSort(listaOrdenada, 0, numeroDeVertices(), idOrigem);
+    auxQuickSort(listaOrdenada, 0, numeroDeClientes()-1, idOrigem);
+
+    imprimeListaVertices(listaOrdenada);
+
     return listaOrdenada;
 }
 
@@ -93,9 +97,10 @@ void Grafo::auxQuickSort(listavertices_t listaOrdenada, size_t p, size_t q, size
 {
     if (p < q)
     {
+        //std::cout << "q " << q << std::endl;
         size_t j = particionamento(listaOrdenada, p, q, idOrigem);
-        std::cout << "-------------------------J " << j << std::endl;
-        auxQuickSort(listaOrdenada, p, j - 1, idOrigem);
+        if(j != 0)
+            auxQuickSort(listaOrdenada, p, j - 1, idOrigem);
         auxQuickSort(listaOrdenada, j + 1, q, idOrigem);
     }
 }
@@ -112,34 +117,35 @@ size_t Grafo::particionamento(listavertices_t listaOrdenada, size_t p, size_t q,
             if (idOrigem == listaOrdenada[i].id())
                 continue;
 
-            std::cout << " Id " << listaOrdenada[i].id() << std::endl;
-            std::cout << "Matriz " << matrizDist[idOrigem][listaOrdenada[i].id()] << std::endl;
-            std::cout << "i " << i << std::endl;
+            // std::cout << " Id " << listaOrdenada[i].id() << std::endl;
+            // std::cout << "Matriz " << matrizDist[idOrigem][listaOrdenada[i].id()] << std::endl;
+            // std::cout << "i " << i << std::endl;
         }
-        std::cout << "saiu" << std::endl;
-        std::cout << "i " << i << std::endl;
-        std::cout << "j " << j << std::endl;
-        std::cout << "p " << p << std::endl;
+        // std::cout << "saiu" << std::endl;
+        // std::cout << "i " << i << std::endl;
+        // std::cout << "j " << j << std::endl;
+        // std::cout << "p " << p << std::endl;
+        // std::cout << "q " << q << std::endl;
         while (v < matrizDist[idOrigem][listaOrdenada[--j].id()])
         {
-            std::cout << "j " << j << std::endl;
-            std::cout << "p " << p << std::endl;
+            // std::cout << "j " << j << std::endl;
+            // std::cout << "p " << p << std::endl;
             if (j == p)
                 break;
         }
         if (i >= j)
             break;
 
-        std::cout << "Troca1" << std::endl;
+        // std::cout << "Troca1" << std::endl;
         std::swap(listaOrdenada[i], listaOrdenada[j]);
     }
 
-    std::cout << "Troca2" << std::endl;
-    std::cout << "i " << i <<  " Matriz " << matrizDist[idOrigem][listaOrdenada[i].id()] << std::endl;
-    std::cout << "q " << q <<  " Matriz " << matrizDist[idOrigem][listaOrdenada[q].id()] << std::endl;
+    // std::cout << "Troca2" << std::endl;
+    // std::cout << "i " << i <<  " Matriz " << matrizDist[idOrigem][listaOrdenada[i].id()] << std::endl;
+    // std::cout << "q " << q <<  " Matriz " << matrizDist[idOrigem][listaOrdenada[q].id()] << std::endl;
     std::swap(listaOrdenada[i], listaOrdenada[q]);
-    std::cout << "Troca2Saiu" << std::endl;
-    std::cout << "iii " << i << std::endl;
+    // std::cout << "Troca2Saiu" << std::endl;
+    // std::cout << "iii " << i << std::endl;
     return i;
 }
 
@@ -148,8 +154,9 @@ Vertice Grafo::selecionaCandidatoIdeal(listaids_t insereEntre, listavertices_t c
 
     //calculaToleranciaPorTrip([h0,hx],[hx,hxx],[hxx,hf]) - calcula o de menor distancia com tolerancia
     //h0 [v1,v5] hx [v2,v8] hxx [v3,v7] hf
+
     listavertices_t possiveis = quickSort(insereEntre[0], clientesCandidatos);
-    imprimeListaVertices(possiveis);
+    //imprimeListaVertices(possiveis);
 
     //escolheIdealPorTrip([h0,hx],[hx,hxx],[hxx,hf]) - pega o de maior pontuação
     //h0 v5 hx v2 hxx v7 hf
