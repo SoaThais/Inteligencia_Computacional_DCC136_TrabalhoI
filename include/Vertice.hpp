@@ -10,9 +10,11 @@ class Vertice {
         double _y;
         double _score;
         bool _isHotel;
+        std::pair<size_t, size_t> _tripID;
 
     public:
         Vertice(size_t id, double x, double y, double score, bool isHotel);
+        void updateTripId(size_t t1, size_t t2);
 
         size_t id() const;
         double x() const;
@@ -22,6 +24,7 @@ class Vertice {
         bool operator==(const Vertice& other) const {
             return (this->id() == other.id());
         }
+        std::pair<size_t, size_t> tripId();
         std::string toString();
 };
 

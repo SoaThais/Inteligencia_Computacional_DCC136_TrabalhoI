@@ -36,6 +36,10 @@ void Grafo::setaCheckTrips(listatour_t tamTrips) {
     this->listaCheckTrips = tamTrips;
 }
 
+void Grafo::atualizaIdTrips(Vertice& v, size_t t, size_t t2) {
+    v.updateTripId(t, t2);
+    std::cout << "Atualizando : " << v.toString() << std::endl;}
+
 void Grafo::setaVariancias(listavariancias_t variancias) {
     this->listaVariancias = variancias;
 }
@@ -95,7 +99,7 @@ double Grafo::refazCalculoAresta(listaids_t verticesQuebrados){
 
 bool Grafo::insercaoViavel(listaids_t verticesQuebrados, size_t t){
     double novoCustoTrip = this->listaTamanhoTrips[t - 1] + refazCalculoAresta(verticesQuebrados);
-    if(novoCustoTrip < this->listaTamanhoMaxTrips[t - 1] && getCustoTour() <= tamanhoMaximo()){
+    if(novoCustoTrip < this->listaTamanhoMaxTrips[t - 1] && getCustoTour() <= tamanhoMaximo() && !this->listaCheckTrips[t-1]){
         return true;
     }
     return false;
@@ -206,13 +210,28 @@ listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice ho
     std::cout << "Trip: " << t << std::endl;
     //se quiser evitar repetição, evitar ids iguais
     for (size_t k = 2; k < hoteis.size(); k++){
-        if(matrizDist[hotelAnterior.id()][hoteis[k].id()] < this->listaTamanhoMaxTrips[t]){
-            if(t == numeroDeTrips()-2){
-                if(matrizDist[hoteis[k].id()][1] < this->listaTamanhoMaxTrips[t+1]){
-                    viaveis.push_back(hoteis[k]);
+        //evitando repetição para que nao perca uma trip no começo em instancias grandes
+        if(hoteis.size() >= 10){
+            if(k!=hotelAnterior.id()){
+                if(matrizDist[hotelAnterior.id()][hoteis[k].id()] < this->listaTamanhoMaxTrips[t]){
+                    if(t == numeroDeTrips()-2){
+                        if(matrizDist[hoteis[k].id()][1] < this->listaTamanhoMaxTrips[t+1]){
+                            viaveis.push_back(hoteis[k]);
+                        }
+                    }
+                    else{ viaveis.push_back(hoteis[k]); }
                 }
             }
-            else{ viaveis.push_back(hoteis[k]); }
+        }
+        else{
+            if(matrizDist[hotelAnterior.id()][hoteis[k].id()] < this->listaTamanhoMaxTrips[t]){
+                if(t == numeroDeTrips()-2){
+                    if(matrizDist[hoteis[k].id()][1] < this->listaTamanhoMaxTrips[t+1]){
+                        viaveis.push_back(hoteis[k]);
+                    }
+                }
+                else{ viaveis.push_back(hoteis[k]); }
+            }
         }
     }
     std::cout << std::endl;
@@ -234,14 +253,18 @@ listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice ho
     return viaveis;
 }
 
-listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips) {
+listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis) {
 
     listavertices_t resultado;
     listatour_t distanciasResultado;
 
+    /*--------------------------------*/
+    /*----SELECIONA HOTEIS VIAVEIS----*/
+    /*--------------------------------*/
+
     resultado.push_back(hoteis[0]);
 
-    for (int i = 0; i < nTrips-1; i++) {
+    for (size_t i = 0; i < numeroDeTrips()-1; i++) {
         listavertices_t hoteisViaveis = selecionaHoteisViaveis(hoteis, resultado[i], i);
         if(hoteisViaveis.size() > 1){
             int j = 1 + rand() % (hoteisViaveis.size() - 1);
@@ -261,12 +284,27 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
     }
     resultado.push_back(hoteis[1]);
 
-    for (int k = 0; k <= nTrips-1; k++){
+    /*--------------------------------*/
+    /*---SETA ID TRIP E DISTANCIAS----*/
+    /*--------------------------------*/
+
+    for (size_t k = 0; k <= numeroDeTrips()-1; k++){
         distanciasResultado.push_back(matrizDist[resultado[k].id()][resultado[k+1].id()]);
-        // std::cout << distanciasResultado[k] << std::endl;
+    }
+    for (size_t k = 0; k <= numeroDeTrips(); k++){
+        if(k==0){
+            atualizaIdTrips(resultado[k], 1, 1);
+        }
+        else if(k==numeroDeTrips()){
+            atualizaIdTrips(resultado[k], numeroDeTrips(), numeroDeTrips());
+        }
+        else{
+            atualizaIdTrips(resultado[k], k, k+1);
+        }
     }
 
     setaTamTrips(distanciasResultado);
+
 
     return resultado;
 }
@@ -419,32 +457,33 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
                 break;
             }
 
-            std::cout << std::endl;
-            std::cout << "______________PREPARA_PARA_INSERIR_______________" << std::endl;
-            std::cout << std::endl;
-            std::cout << "Vai inserir entre: " << insereEntre[0] << " e " << insereEntre[1] << " o vertice " << v.id() << std::endl;
-
-
             /*--------------------------------*/
             /*------TRATAMENTO INSERÇÃO-------*/
             /*--------------------------------*/
 
-            if (v.id() == 0 && !v.isHotel())
+            if (v.id() == 0 && !v.isHotel()){
                 insercaoProibida = true;
+                std::cout << "INSERCAO PROIBIDA" << tripAtual-1 << std::endl;
+            }
 
-            if (getVerticeById(insereEntre[0]).isHotel() || ( getVerticeById(insereEntre[1]).id()== 0 && getVerticeById(insereEntre[1]).isHotel()) ){
+            if (getVerticeById(insereEntre[0]).id() != 1 && getVerticeById(insereEntre[0]).isHotel()){
                 if(!verticesTrip.empty()) {
-                    std::cout << std::endl;
-                    std::cout << "_________________VERTICES_DA_TRIP_" << tripAtual << "__________________" << std::endl;
-                    std::cout << std::endl;
-                    imprimeListaVertices(verticesTrip);
-                    if (insercaoProibida)
+                    if (insercaoProibida){
+                        std::cout << "LOCKING TRIP_" << tripAtual-1 << std::endl;
                         this->listaCheckTrips[tripAtual-1] = 1;
+                    }
                     tripAtual--;
                     verticesTrip.clear();
                 }
                 verticesTrip.push_back(getVerticeById(insereEntre[0]));
             }
+            if (getVerticeById(insereEntre[1]).id() == 0 && getVerticeById(insereEntre[1]).isHotel()){
+                if (insercaoProibida){
+                    std::cout << "LOCKING TRIP_" << tripAtual-1 << std::endl;
+                    this->listaCheckTrips[tripAtual-1] = 1;
+                }
+            }
+
 
             if(!insercaoProibida){
                 verticesTrip.push_back(v);
@@ -455,11 +494,19 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             imprimeListaTripTour();
 
             if(!insercaoProibida){
+                std::cout << std::endl;
+                std::cout << "______________PREPARA_PARA_INSERIR_______________" << std::endl;
+                std::cout << std::endl;
+                std::cout << "Vai inserir na TRIP_" << tripAtual-1 << ", entre: " << insereEntre[0] << " e " << insereEntre[1] << " o vertice " << v.id() << std::endl;
                 listaCandidatos.insert(listaCandidatos.begin() + i, v);
                 int posicao = getVerticeIndex(clientesCandidatos, v);
                 clientesCandidatos.erase(clientesCandidatos.begin() + posicao);
             }
 
+            std::cout << std::endl;
+            std::cout << "_________________VERTICES_DA_TRIP_" << tripAtual-1 << "__________________" << std::endl;
+            std::cout << std::endl;
+            imprimeListaVertices(verticesTrip);
             //Depois tratar se totalTour > Tmax
 
         }
@@ -481,7 +528,7 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
 
     std::cout << "________________ETAPA_CONSTRUTIVA_________________" << std::endl;
     std::cout << std::endl;
-    listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos, numeroDeTrips());
+    listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos);
 
     std::cout << "______________FIM_ETAPA_CONSTRUTIVA_______________" << std::endl;
     std::cout << std::endl;
@@ -664,21 +711,6 @@ void Grafo::imprimeListaVertices(listavertices_t verticesToPrint){
         std::cout << verticesToPrint[i].toString();
         if(i != verticesToPrint.size()-1){ std::cout << " | " << matrizDist[verticesToPrint[i].id()][verticesToPrint[i+1].id()]; }
         std::cout << " | " << std::endl;
-    }
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-}
-
-void Grafo::imprimeListaOrdenada(listavertices_t verticesToPrint, size_t idOrigem){
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-    for (size_t i = 0; i < verticesToPrint.size(); i++) {
-        if(verticesToPrint[i].isHotel())
-            { std::cout << "H" << verticesToPrint[i].id() << " | ";}
-        else{ std::cout << "V" << verticesToPrint[i].id() << " | ";}
-
-        std::cout << verticesToPrint[i].toString() << " | ";
-        std::cout << this->matrizDist[idOrigem][verticesToPrint[i].id()] << std::endl;
     }
     std::cout << "___________________________________________________________" << std::endl;
     std::cout << std::endl;

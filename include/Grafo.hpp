@@ -38,10 +38,13 @@ class Grafo {
         listatour_t listaTamanhoMaxTrips;
         double** matrizDist;
 
-        //Sets e Gets
+        //Sets e Checks Trips
         void setaTamMaxTrips(listatour_t tamTrips);
         void setaTamTrips(listatour_t tamTrips);
         void setaCheckTrips(listatour_t tamTrips);
+        void atualizaIdTrips(Vertice& v, size_t t, size_t t2);
+
+        //Calculos Distancia
         void setaVariancias(listavariancias_t variancias);
         void setaMatrizDists();
         int getVerticeIndex(listavertices_t verticeVector, Vertice v);
@@ -65,7 +68,7 @@ class Grafo {
 
         //Auxiliares Solucao
         listavertices_t selecionaHoteisViaveis(listavertices_t hoteis, Vertice hotelAnterior, size_t t);
-        listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips);
+        listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis);
         Vertice selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t);
         listavertices_t insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos);
 
