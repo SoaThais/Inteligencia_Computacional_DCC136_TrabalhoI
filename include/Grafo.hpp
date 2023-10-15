@@ -48,7 +48,6 @@ class Grafo {
         void setaVariancias(listavariancias_t variancias);
         void setaMatrizDists();
         int getVerticeIndex(listavertices_t verticeVector, Vertice v);
-        double getCustoTour();
 
         //Viabilidade
         void atualizaTamanhoTripT(listaids_t verticesQuebrados, size_t t);
@@ -78,8 +77,11 @@ class Grafo {
         Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax);
 
         //Solucao
+        double calculaCustoSolucao(listavertices_t solucao);
         listavertices_t guloso(listavertices_t todosHoteisCandidatos, listavertices_t todosVerticesCandidatos);
-        void geraSolucao();
+        void buscaLocal(std::vector<Vertice>& solucao);
+        listavertices_t rvnd(listavertices_t listaCandidatos);
+        void geraSolucao(int flagSolucao, size_t maxIt);
 
         //Entrada
         static Grafo lerArquivo(std::istream& arqEntrada, std::string nomeArquivo);
@@ -99,6 +101,7 @@ class Grafo {
         size_t numeroDeTrips() const { return this->_numeroTrips; };
         size_t tamanhoMaximo() const { return this->_tMax; };
         std::string graphName() const { return this->_graphName; };
+        double getCustoTour();
 };
 
 #endif // GRAFO_HPP

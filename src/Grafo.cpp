@@ -9,6 +9,7 @@
 #define ERR_FULL_TRIPS                   4
 #define ERR_NOT_VIABLE                   5
 
+#define LIMITE_BL 0.001
 
 Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax):
     _graphName(graphName),
@@ -32,9 +33,12 @@ void printCustomHeader(const std::string& customText) {
     std::cout << std::endl;
 }
 
-/*--------------------------------*/
-/*-----------Sets/Gets-----------*/
-/*--------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------Sets/Gets---------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+
+
 
 void Grafo::setaTamMaxTrips(listatour_t tamTrips) {
     this->listaTamanhoMaxTrips = tamTrips;
@@ -61,8 +65,8 @@ void Grafo::setaMatrizDists() {
 
 double Grafo::getCustoTour() {
 
-    int tamanhoTour = 0;
-    for (int tamanhoTrip : this->listaTamanhoTrips) {
+    double tamanhoTour = 0;
+    for (double tamanhoTrip : this->listaTamanhoTrips) {
         tamanhoTour += tamanhoTrip;
     }
     return tamanhoTour;
@@ -85,9 +89,11 @@ int Grafo::getVerticeIndex(listavertices_t verticeVector, Vertice v)
 }
 
 
-/*--------------------------------*/
-/*-----------Viabilidade-----------*/
-/*--------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------Viabilidade-------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+
 
 
 void Grafo::atualizaTamanhoTripT(listaids_t verticesQuebrados, size_t t){
@@ -119,9 +125,12 @@ bool Grafo::insercaoViavel(listaids_t verticesQuebrados, size_t t){
 }
 
 
-/*--------------------------------*/
-/*-----------Auxiliares-----------*/
-/*--------------------------------*/
+
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------Utils----------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+
 
 
 double Grafo::distanciaEuclidiana(Vertice a, Vertice b)
@@ -170,9 +179,14 @@ Vertice Grafo::maiorScore(listavertices_t vertices) {
 }
 
 
-/*--------------------------------*/
-/*-----------Quick Sort-----------*/
-/*--------------------------------*/
+
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------Quick-Sort--------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+
+
+
 
 size_t Grafo::particionamento(listavertices_t& listaOrdenada, size_t p, size_t q, size_t idOrigem)
 {
@@ -217,8 +231,15 @@ listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandid
 }
 
 
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------CONSTRUTIVO-------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+
+
+
 /*--------------------------------*/
-/*-----------CONSTRUTIVO----------*/
+/*---ANALISA VIABILIDADE HOTEIS---*/
 /*--------------------------------*/
 
 listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice hotelAnterior, size_t t){
@@ -228,10 +249,6 @@ listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice ho
     std::cout << "Hotel Anterior: " << hotelAnterior.id() << std::endl;
     std::cout << "Trip: " << t << std::endl;
 
-
-    /*--------------------------------*/
-    /*---ANALISA VIABILIDADE HOTEIS---*/
-    /*--------------------------------*/
 
     for (size_t k = 2; k < hoteis.size(); k++){
 
@@ -284,6 +301,10 @@ listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice ho
     std::cout << std::endl;
     return viaveis;
 }
+
+/*--------------------------------*/
+/*---SELECIONA HOTEIS DA TOUR-----*/
+/*--------------------------------*/
 
 listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis) {
 
@@ -343,6 +364,10 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis) {
 
     return resultado;
 }
+
+/*--------------------------------*/
+/*---SELECIONA MELHOR VÉRTICE-----*/
+/*--------------------------------*/
 
 Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t){
 
@@ -446,6 +471,10 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
     return v;
 }
 
+/*--------------------------------*/
+/*---CONDIÇÃO PARADA INSERÇÃO-----*/
+/*--------------------------------*/
+
 bool Grafo::condicoesParadaClientes(int& breakFlag, listavertices_t clientesCandidatos){
 
     /*--------------------------------*/
@@ -476,6 +505,10 @@ bool Grafo::condicoesParadaClientes(int& breakFlag, listavertices_t clientesCand
 
     return false;
 }
+
+/*--------------------------------*/
+/*--------INSERE VERTICES---------*/
+/*--------------------------------*/
 
 listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos) {
 
@@ -568,6 +601,10 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
     return listaCandidatos;
 }
 
+/*--------------------------------*/
+/*--------ALGORITMO GULOSO--------*/
+/*--------------------------------*/
+
 listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertices_t todosClientesCandidatos){
 
     /*--------------------------------*/
@@ -594,7 +631,98 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
     return listaCandidatos;
 }
 
-void Grafo::geraSolucao(){
+/*--------------------------------*/
+/*--------ALGORITMO RVND----------*/
+/*--------------------------------*/
+
+// listavertices_t Grafo::rvnd(listavertices_t listaCandidatos){
+
+// }
+
+/*--------------------------------*/
+/*-------BUSCA LOCAL 1 MOV--------*/
+/*--------------------------------*/
+
+void Grafo::buscaLocal(std::vector<Vertice>& solucao) {
+    bool melhoriaEncontrada = true;
+
+    while (melhoriaEncontrada) {
+        melhoriaEncontrada = false;
+
+        for (size_t i = 0; i < solucao.size(); i++) {
+            for (size_t j = i + 1; j < solucao.size(); j++) {
+
+                /*--------------------------------*/
+                /*--------MOVIMENTO-1-SWAP--------*/
+                /*--------------------------------*/
+
+                std::vector<Vertice> novaSolucao = solucao;
+                if(novaSolucao[i].isHotel() || novaSolucao[j].isHotel()){
+                    continue;
+                }
+
+                // std::cout << "Fazendo um SWAP entre: " << std::endl;
+                // std::cout << novaSolucao[i].toString() << std::endl;
+                // std::cout << novaSolucao[j].toString() << std::endl;
+
+                listaids_t verticesQuebradosi;
+                verticesQuebradosi.push_back(novaSolucao[j-1].id());
+                verticesQuebradosi.push_back(novaSolucao[j+1].id());
+                verticesQuebradosi.push_back(novaSolucao[i].id());
+
+                listaids_t verticesQuebradosj;
+                verticesQuebradosj.push_back(novaSolucao[i-1].id());
+                verticesQuebradosj.push_back(novaSolucao[i+1].id());
+                verticesQuebradosj.push_back(novaSolucao[j].id());
+
+                if(insercaoViavel(verticesQuebradosi, novaSolucao[i-1].tripId().first)){
+                    if(insercaoViavel(verticesQuebradosj, novaSolucao[j-1].tripId().first)){
+                        atualizaIdTrips(novaSolucao[j], novaSolucao[i-1].tripId().first, novaSolucao[i+1].tripId().first);
+                        atualizaIdTrips(novaSolucao[i], novaSolucao[j-1].tripId().first, novaSolucao[j+1].tripId().first);
+                        std::swap(novaSolucao[i], novaSolucao[j]);
+                    }
+                }
+
+
+                /*--------------------------------*/
+                /*----------AVALIA-CUSTOS---------*/
+                /*--------------------------------*/
+
+                double custoAtual = calculaCustoSolucao(solucao);
+                double custoNovo = calculaCustoSolucao(novaSolucao);
+
+                if (custoAtual - custoNovo > 0.000l) {
+                    std::cout << "Custo Pre Swap " << custoAtual <<  std::endl;
+                    std::cout << "Custo Pos Swap " << custoNovo << std::endl;
+                    solucao = novaSolucao;
+                    melhoriaEncontrada = true;
+                }
+            }
+        }
+    }
+}
+
+/*--------------------------------*/
+/*--------CUSTO DA SOLUÇÃO--------*/
+/*--------------------------------*/
+
+double Grafo::calculaCustoSolucao(listavertices_t solucao){
+    double custo = 0;
+    // std::cout << "Solucao Size=" << solucao.size() << std::endl;
+    for (size_t i = 0; i < solucao.size()-1; i++) {
+        size_t id1 = solucao[i].id();
+        size_t id2 = solucao[i+1].id();
+        custo += matrizDist[id1][id2];
+        // std::cout << "i=" << i << " | i+1 = " << i+1 << " | Custo Atual=" << custo << std::endl;
+    }
+    return custo;
+}
+
+/*--------------------------------*/
+/*--------GERA A SOLUÇÃO----------*/
+/*--------------------------------*/
+
+void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
 
     /*--------------------------------*/
     /*--------FASE PREPARAÇÃO---------*/
@@ -608,17 +736,81 @@ void Grafo::geraSolucao(){
     printCustomHeader("LISTA_DE_PONTOS_TURISTICOS_CANDIDATOS");
     imprimeListaVertices(todosClientesCandidatos);
 
-    /*--------------------------------*/
-    /*------GERA SOLUÇÃO GULOSA-------*/
-    /*--------------------------------*/
+    listavertices_t solucao;
+    std::vector<double> custosDasSolucoesBL;
 
-    printCustomHeader("INICIO GULOSO");
-    listavertices_t solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
+    printCustomHeader("FLAG DE ALGORITMO - " + std::to_string(flagSolucao) );
 
-    printCustomHeader("FIM GULOSO");
-    imprimeListaTripTour();
+    switch (flagSolucao)
+    {
+        case 1:
+
+            /*--------------------------------*/
+            /*------GERA SOLUÇÃO GULOSA-------*/
+            /*--------------------------------*/
+
+            printCustomHeader("INICIO GULOSO");
+            solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
+
+            printCustomHeader("FIM GULOSO");
+            imprimeListaTripTour();
+            std::cout << "CUSTO ENCONTRADO GULOSO: " << calculaCustoSolucao(solucao) << std::endl;
+            break;
+
+        case 2:
+
+            /*--------------------------------*/
+            /*----GERA-SOLUÇÃO-BUSCA-LOCAL----*/
+            /*--------------------------------*/
+
+            for(size_t it = 0; it <= maxIt; it++){
+
+                printCustomHeader("INICIO DA " + std::to_string(it) + "º INTERAÇÃO");
+
+                /*--------------------------------*/
+                /*----------OBTEM-GULOSA----------*/
+                /*--------------------------------*/
+
+                printCustomHeader("INICIO GULOSO DA BUSCA LOCAL");
+                solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
+                printCustomHeader("FIM GULOSO DA BUSCA LOCAL");
+                imprimeListaTripTour();
+                std::cout << "CUSTO ENCONTRADO GULOSO: " << calculaCustoSolucao(solucao) << std::endl;
+
+                /*--------------------------------*/
+                /*-----------BUSCA-LOCAL----------*/
+                /*--------------------------------*/
+
+                printCustomHeader("INICIO BUSCA LOCAL");
+                buscaLocal(solucao);
+                printCustomHeader("FIM BUSCA LOCAL");
+                custosDasSolucoesBL.push_back(calculaCustoSolucao(solucao));
+                std::cout << "CUSTO ENCONTRADO BUSCA LOCAL: " << custosDasSolucoesBL[it] << std::endl;
+                printCustomHeader("FIM DA " + std::to_string(it) + "º INTERAÇÃO");
+
+                if(it > 1){
+                    if(custosDasSolucoesBL[it] - custosDasSolucoesBL[it-1] < LIMITE_BL){
+                       printCustomHeader("ENCERRADO NA " + std::to_string(it) + "º INTERAÇÃO");
+                       break;
+                    }
+                }
+            }
+
+            break;
+
+    default:
+        std::cerr << "Selecione um tipo de Algoritmo corretamente" << std::endl;
+        break;
+    }
+
 
 }
+
+
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*---------------------------------------LEITURA ARQUIVO-----------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
 
 std::vector <float> separaLinha(std::string linha){
     std::istringstream stream(linha);
@@ -706,6 +898,14 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
     return g;
 }
 
+
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*-------------------------------------FUNÇÕES DE IMPRESSÃO--------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+
+
+
 void Grafo::imprimeGrafo(){
 
     std::cout << std::endl;
@@ -757,8 +957,3 @@ void Grafo::imprimeListaTripTour(){
     std::cout << "___________________________________________________________" << std::endl;
     std::cout << std::endl;
 }
-
-struct InfoSolucao {
-    double distanciaTotal;
-    double tempoViajando;
-};
