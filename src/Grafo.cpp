@@ -7,6 +7,7 @@
 #define ERR_VERTEX_NON_EXIST             2
 #define ERR_BIG_DISTANCE                 3
 #define ERR_FULL_TRIPS                   4
+#define ERR_NOT_VIABLE                   5
 
 Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax):
     _graphName(graphName),
@@ -43,8 +44,13 @@ void Grafo::setaMatrizDists() {
     this->matrizDist = calculaMatrizDistancias();
 }
 
-Vertice& Grafo::getVerticeById(size_t id) {
-    return this->listaVertices.at(id);
+double Grafo::getCustoTour() {
+
+    int tamanhoTour = 0;
+    for (int tamanhoTrip : this->listaTamanhoTrips) {
+        tamanhoTour += tamanhoTrip;
+    }
+    return tamanhoTour;
 }
 
 int Grafo::getVerticeIndex(listavertices_t verticeVector, Vertice v)
@@ -63,23 +69,36 @@ int Grafo::getVerticeIndex(listavertices_t verticeVector, Vertice v)
     return index;
 }
 
-void Grafo::atualizaTamanhoTripT(double novoCusto, size_t t){
-    this->listaTamanhoTrips[t-1] += novoCusto;
+
+/*--------------------------------*/
+/*-----------Viabilidade-----------*/
+/*--------------------------------*/
+
+
+void Grafo::atualizaTamanhoTripT(listaids_t verticesQuebrados, size_t t){
+
+    double novoCustoTrip = this->listaTamanhoTrips[t - 1] + refazCalculoAresta(verticesQuebrados);
+    this->listaTamanhoTrips[t-1] = novoCustoTrip;
 }
 
-double Grafo::refazCalculoAresta(listaids_t verticesRefatorados){
+double Grafo::refazCalculoAresta(listaids_t verticesQuebrados){
     //0 - entre0 | 1 - entre1 | 2 - verticeNovo
     double refatorado = 0;
-    double custoOriginalAresta = matrizDist[verticesRefatorados[0]][verticesRefatorados[1]];
-    double custoArestasNovas = matrizDist[verticesRefatorados[0]][verticesRefatorados[2]] + matrizDist[verticesRefatorados[2]][verticesRefatorados[1]];
-    // std::cout << "CustoArestasNovas: " << matrizDist[verticesRefatorados[0]][verticesRefatorados[2]] << " | " << matrizDist[verticesRefatorados[2]][verticesRefatorados[1]]<< std::endl;
-    // std::cout << "custoOriginalAresta: " << custoOriginalAresta << std::endl;
+    size_t v_origem = verticesQuebrados[0];
+    size_t v_destino = verticesQuebrados[1];
+    size_t v_novo = verticesQuebrados[2];
+    double custoOriginalAresta = matrizDist[v_origem][v_destino];
+    double custoArestasNovas = matrizDist[v_origem][v_novo] + matrizDist[v_novo][v_destino];
     refatorado = custoArestasNovas - custoOriginalAresta;
     return refatorado;
 }
 
-bool Grafo::insercaoViavel(size_t i, size_t j, size_t t){
-    return this->listaTamanhoTrips[t - 1] + matrizDist[i][j] <= this->listaTamanhoMaxTrips[t - 1];
+bool Grafo::insercaoViavel(listaids_t verticesQuebrados, size_t t){
+    double novoCustoTrip = this->listaTamanhoTrips[t - 1] + refazCalculoAresta(verticesQuebrados);
+    if(novoCustoTrip < this->listaTamanhoMaxTrips[t - 1] && getCustoTour() <= tamanhoMaximo()){
+        return true;
+    }
+    return false;
 }
 
 
@@ -180,6 +199,40 @@ listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandid
 /*-----------Construtivo----------*/
 /*--------------------------------*/
 
+listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice hotelAnterior, size_t t){
+    listavertices_t viaveis;
+    std::cout << std::endl;
+    std::cout << "Hotel Anterior: " << hotelAnterior.id() << std::endl;
+    std::cout << "Trip: " << t << std::endl;
+    //se quiser evitar repetição, evitar ids iguais
+    for (size_t k = 2; k < hoteis.size(); k++){
+        if(matrizDist[hotelAnterior.id()][hoteis[k].id()] < this->listaTamanhoMaxTrips[t]){
+            if(t == numeroDeTrips()-2){
+                if(matrizDist[hoteis[k].id()][1] < this->listaTamanhoMaxTrips[t+1]){
+                    viaveis.push_back(hoteis[k]);
+                }
+            }
+            else{ viaveis.push_back(hoteis[k]); }
+        }
+    }
+    std::cout << std::endl;
+    std::cout << "_________________HOTEIS_VIAVEIS_PARA_TAM=" << this->listaTamanhoMaxTrips[t] << "__________________" << std::endl;
+    std::cout << std::endl;
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    for (size_t i = 0; i < viaveis.size(); i++) {
+        if(viaveis[i].isHotel())
+            { std::cout << "H" << viaveis[i].id() << " | ";}
+        else{ std::cout << "V" << viaveis[i].id() << " | ";}
+
+        std::cout << viaveis[i].toString();
+        if(i != viaveis.size()){ std::cout << " | " << matrizDist[hotelAnterior.id()][viaveis[i].id()]; }
+        std::cout << " | " << std::endl;
+    }
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    return viaveis;
+}
 
 listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips) {
 
@@ -189,12 +242,22 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
     resultado.push_back(hoteis[0]);
 
     for (int i = 0; i < nTrips-1; i++) {
-        int j = 1 + rand() % (hoteis.size() - 1);
-        do
-        {
-            j = 1 + rand() % (hoteis.size() - 1);
-        } while (j == 1);
-        resultado.push_back(hoteis[j]);
+        listavertices_t hoteisViaveis = selecionaHoteisViaveis(hoteis, resultado[i], i);
+        if(hoteisViaveis.size() > 1){
+            int j = 1 + rand() % (hoteisViaveis.size() - 1);
+            do
+            {
+                j = 1 + rand() % (hoteisViaveis.size() - 1);
+            } while (j == 1);
+            resultado.push_back(hoteisViaveis[j]);
+        }
+        else if (hoteisViaveis.size() == 1){
+            resultado.push_back(hoteisViaveis[0]);
+        }
+        else{
+            std::cout << "Randomização não permitiu solução viável para Trips!" << std::endl;
+            throw ERR_NOT_VIABLE;
+        }
     }
     resultado.push_back(hoteis[1]);
 
@@ -202,6 +265,7 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
         distanciasResultado.push_back(matrizDist[resultado[k].id()][resultado[k+1].id()]);
         // std::cout << distanciasResultado[k] << std::endl;
     }
+
     setaTamTrips(distanciasResultado);
 
     return resultado;
@@ -209,9 +273,15 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
 
 Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t){
 
+    listaids_t verticesQuebrados;
+    verticesQuebrados.push_back(insereEntre[0]);
+    verticesQuebrados.push_back(insereEntre[1]);
+
     if (clientesCandidatos.size() == 1){
-        if (insercaoViavel(clientesCandidatos[0].id(), insereEntre[0], t))
+        verticesQuebrados.push_back(clientesCandidatos[0].id());
+        if (insercaoViavel(verticesQuebrados, t))
             return clientesCandidatos[0];
+        verticesQuebrados.pop_back();
     }
 
     Vertice v(0, 0, 0, -1, false);
@@ -228,12 +298,16 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
     /*--------------------------------*/
 
     if(menorDist0 <= minimo){
-        if (insercaoViavel(possiveis0[0].id(), insereEntre[0], t))
-            v = possiveis0[0];
+        verticesQuebrados.push_back(possiveis0[0].id());
+        if (insercaoViavel(verticesQuebrados, t))
+            return possiveis0[0];
+        verticesQuebrados.pop_back();
     }
     else if(menorDist1 <= minimo){
-        if (insercaoViavel(possiveis1[0].id(), insereEntre[1], t))
-            v = possiveis1[0];
+        verticesQuebrados.push_back(possiveis1[0].id());
+        if (insercaoViavel(verticesQuebrados, t))
+            return possiveis1[0];
+        verticesQuebrados.pop_back();
     }
     else{
 
@@ -246,9 +320,10 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         listavariancias_t distancias0;
         do
         {
-            if (!insercaoViavel(insereEntre[0], possiveis0[i].id(), t))
+            verticesQuebrados.push_back(possiveis0[i].id());
+            if (!insercaoViavel(verticesQuebrados, t))
                 break;
-
+            verticesQuebrados.pop_back();
             distancias0.push_back(matrizDist[insereEntre[0]][possiveis0[i].id()]);
             tolerancia0.push_back(possiveis0[i]);
             i = i + 1;
@@ -260,8 +335,10 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         listavariancias_t distancias1;
         do
         {
-            if (!insercaoViavel(insereEntre[1], possiveis1[j].id(), t))
+            verticesQuebrados.push_back(possiveis1[j].id());
+            if (!insercaoViavel(verticesQuebrados, t))
                 break;
+            verticesQuebrados.pop_back();
 
             distancias1.push_back(matrizDist[insereEntre[1]][possiveis1[j].id()]);
             tolerancia1.push_back(possiveis1[j]);
@@ -332,6 +409,9 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             listaids_t insereEntre;
             insereEntre.push_back(listaCandidatos.at(i).id());
             insereEntre.push_back(listaCandidatos.at(i-1).id());
+
+            listaids_t verticesQuebrados = insereEntre;
+
             Vertice v = selecionaClienteIdeal(insereEntre, clientesCandidatos, tripAtual);
 
             if(v.id() > numeroDeVertices()){
@@ -355,7 +435,7 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             if (getVerticeById(insereEntre[0]).isHotel() || ( getVerticeById(insereEntre[1]).id()== 0 && getVerticeById(insereEntre[1]).isHotel()) ){
                 if(!verticesTrip.empty()) {
                     std::cout << std::endl;
-                    std::cout << "______________VERTICES_DE_UMA_TRIP_" << tripAtual << "_______________" << std::endl;
+                    std::cout << "_________________VERTICES_DA_TRIP_" << tripAtual << "__________________" << std::endl;
                     std::cout << std::endl;
                     imprimeListaVertices(verticesTrip);
                     if (insercaoProibida)
@@ -368,12 +448,8 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
 
             if(!insercaoProibida){
                 verticesTrip.push_back(v);
-                listaids_t verticesRefatorados;
-                verticesRefatorados.push_back(insereEntre[0]);
-                verticesRefatorados.push_back(insereEntre[1]);
-                verticesRefatorados.push_back(v.id());
-                double novoCusto = refazCalculoAresta(verticesRefatorados);
-                atualizaTamanhoTripT(novoCusto, tripAtual);
+                verticesQuebrados.push_back(v.id());
+                atualizaTamanhoTripT(verticesQuebrados, tripAtual);
             }
             verticesTrip.push_back(getVerticeById(insereEntre[1]));
             imprimeListaTripTour();
@@ -403,11 +479,14 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
     /*-------FASE CONSTRUTIVA---------*/
     /*--------------------------------*/
 
-    listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos, numeroDeTrips());
-
     std::cout << "________________ETAPA_CONSTRUTIVA_________________" << std::endl;
     std::cout << std::endl;
+    listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos, numeroDeTrips());
+
+    std::cout << "______________FIM_ETAPA_CONSTRUTIVA_______________" << std::endl;
+    std::cout << std::endl;
     imprimeListaVertices(listaCandidatos);
+
 
     /*--------------------------------*/
     /*---------FASE INSERÇÃO----------*/
@@ -610,12 +689,10 @@ void Grafo::imprimeListaTripTour(){
     std::cout << std::endl;
     std::cout << "Lista da Tour com " << numeroDeTrips() << " Trips" <<  std::endl;
     std::cout << std::endl;
-    float somaTour = 0;
     for (size_t i = 0; i < numeroDeTrips(); i++) {
         std::cout << "TRIP_" << i << " - " << this->listaTamanhoTrips[i] << " | " << this->listaTamanhoMaxTrips[i] <<  " | " << this->listaCheckTrips[i] << std::endl;
-        somaTour += this->listaTamanhoTrips[i];
     }
-    std::cout << "TOUR" << " - " << somaTour << " | " << tamanhoMaximo() << std::endl;
+    std::cout << "TOUR" << " - " << getCustoTour() << " | " << tamanhoMaximo() << std::endl;
 
     std::cout << "___________________________________________________________" << std::endl;
     std::cout << std::endl;

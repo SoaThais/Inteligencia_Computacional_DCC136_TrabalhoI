@@ -44,14 +44,13 @@ class Grafo {
         void setaCheckTrips(listatour_t tamTrips);
         void setaVariancias(listavariancias_t variancias);
         void setaMatrizDists();
-        Vertice& getVerticeById(size_t id);
         int getVerticeIndex(listavertices_t verticeVector, Vertice v);
+        double getCustoTour();
 
         //Viabilidade
-        void atualizaTamanhoTripT(double novoCusto, size_t t);
-        double refazCalculoAresta(listaids_t verticesRefatorados);
-        void calculaTamanhoTripK(listavertices_t verticesTour, size_t t);
-        bool insercaoViavel(size_t i, size_t j, size_t t);
+        void atualizaTamanhoTripT(listaids_t verticesQuebrados, size_t t);
+        double refazCalculoAresta(listaids_t verticesQuebrados);
+        bool insercaoViavel(listaids_t verticesQuebrados, size_t t);
 
         //Auxiliares
         double distanciaEuclidiana(Vertice a, Vertice b);
@@ -65,6 +64,7 @@ class Grafo {
         listavertices_t quickSort(size_t idOrigem, listavertices_t verticesCandidatos);
 
         //Auxiliares Solucao
+        listavertices_t selecionaHoteisViaveis(listavertices_t hoteis, Vertice hotelAnterior, size_t t);
         listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips);
         Vertice selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t);
         listavertices_t insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos);
@@ -88,6 +88,7 @@ class Grafo {
         void imprimeListaTripTour();
 
         //Gets
+        Vertice& getVerticeById(size_t id){ return this->listaVertices.at(id); }
         size_t numeroDeVertices() const { return this->listaVertices.size(); };
         size_t numeroDeHoteis() const { return this->_numeroHoteis; };
         size_t numeroDeClientes() const { return numeroDeVertices()-numeroDeHoteis()-2; };
