@@ -319,28 +319,34 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis) {
     /*----SELECIONA HOTEIS VIAVEIS----*/
     /*--------------------------------*/
 
-    resultado.push_back(hoteis[0]);
+    bool randViavel;
 
-    //Acrescrentar do while para escapar do else
-    for (size_t i = 0; i < numeroDeTrips()-1; i++) {
-        listavertices_t hoteisViaveis = selecionaHoteisViaveis(hoteis, resultado[i], i);
+    do {
+        randViavel = true;
 
-        if(hoteisViaveis.size() > 1){
-            int j = 1 + rand() % (hoteisViaveis.size() - 1);
-            do
-            {
-                j = 1 + rand() % (hoteisViaveis.size() - 1);
-            } while (j == 1);
-            resultado.push_back(hoteisViaveis[j]);
-        }
-        else if (hoteisViaveis.size() == 1){
-            resultado.push_back(hoteisViaveis[0]);
-        }
-        else{
-            std::cout << "Randomização não permitiu solução viável para Trips!" << std::endl;
-            throw ERR_NOT_VIABLE;
-        }
-    }
+        resultado.push_back(hoteis[0]);
+
+        for (size_t i = 0; i < numeroDeTrips() - 1; i++) {
+            listavertices_t hoteisViaveis = selecionaHoteisViaveis(hoteis, resultado[i], i);
+
+            if(hoteisViaveis.size() > 1){
+                int j = 1 + rand() % (hoteisViaveis.size() - 1);
+                do
+                {
+                    j = 1 + rand() % (hoteisViaveis.size() - 1);
+                } while (j == 1);
+                resultado.push_back(hoteisViaveis[j]);
+            }
+            else if (hoteisViaveis.size() == 1){
+                resultado.push_back(hoteisViaveis[0]);
+            }
+            else{
+                randViavel = false;
+                resultado.clear();
+            }
+        } 
+    } while(!randViavel);
+
     resultado.push_back(hoteis[1]);
 
     /*--------------------------------*/
@@ -699,9 +705,9 @@ void Grafo::buscaLocal(std::vector<Vertice>& solucao) {
                 double custoAtual = calculaCustoSolucao(solucao);
                 double custoNovo = calculaCustoSolucao(novaSolucao);
 
-                printCustomHeader("EITAAA");
-                imprimeListaVertices(solucao);
-                imprimeListaVertices(novaSolucao);
+                // printCustomHeader("EITAAA");
+                // imprimeListaVertices(solucao);
+                // imprimeListaVertices(novaSolucao);
 
                 if (custoNovo - custoAtual > 0.1) {
                     // std::cout << "Custo Pre Swap " << custoAtual <<  std::endl;
