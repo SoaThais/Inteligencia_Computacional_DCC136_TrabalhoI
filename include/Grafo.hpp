@@ -31,6 +31,8 @@ class Grafo {
         size_t _numeroHoteis;
         size_t _numeroTrips;
         size_t _tMax;
+        double _scoreSol;
+        double _custoSol;
         listavertices_t listaVertices;
         listavariancias_t listaVariancias;
         listatour_t listaCheckTrips;
@@ -39,6 +41,8 @@ class Grafo {
         double** matrizDist;
 
         //Sets e Checks Trips
+        void setaScoreSol(double score);
+        void setaCustoSol(double custo);
         void setaTamMaxTrips(listatour_t tamTrips);
         void setaTamTrips(listatour_t tamTrips);
         void setaCheckTrips(listatour_t tamTrips);
@@ -78,6 +82,7 @@ class Grafo {
 
         //Solucao
         double calculaCustoSolucao(listavertices_t solucao);
+        double calculaScoreSolucao(listavertices_t solucao);
         listavertices_t guloso(listavertices_t todosHoteisCandidatos, listavertices_t todosVerticesCandidatos);
         void buscaLocal(std::vector<Vertice>& solucao);
         listavertices_t rvnd(listavertices_t listaCandidatos);
@@ -102,6 +107,8 @@ class Grafo {
         size_t tamanhoMaximo() const { return this->_tMax; };
         std::string graphName() const { return this->_graphName; };
         double getCustoTour();
+        double getScoreSol() const { return this->_scoreSol; };
+        double getCustoSol() const { return this->_custoSol; };
 };
 
 #endif // GRAFO_HPP

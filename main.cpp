@@ -20,6 +20,8 @@ using tempo_t = relogio_t::time_point;
 struct InfoSolucao {
     double execucao;
     double custo;
+    double score;
+    double qualidade;
     double tempoGasto;
 };
 
@@ -99,14 +101,17 @@ int main(int argc, char **argv)
         g.geraSolucao(algorithmID, max_it);
         tempo_t end = relogio_t::now();
 
-        std::cout << "Custo da Solução: " << g.getCustoTour() << std::endl;
+        std::cout << "Custo da Solução: " << g.getCustoSol() << std::endl;
+        std::cout << "Score da Solução: " << g.getScoreSol() << std::endl;
         double time = std::chrono::duration_cast<std::chrono::microseconds>((end)-(start)).count();
         std::cout << "Tempo Gasto: " << time << std::endl;
 
 
         InfoSolucao info;
         info.execucao = numExec;
-        info.custo = g.getCustoTour();
+        info.custo = g.getCustoSol();
+        info.score = g.getScoreSol();
+        info.qualidade = info.score/info.custo;
         info.tempoGasto = time;
         solucoesDeG.push_back(info);
     }
@@ -115,6 +120,8 @@ int main(int argc, char **argv)
     for (const InfoSolucao& solucao : solucoesDeG) {
         std::cout << "Número da Execução: " << solucao.execucao << std::endl;
         std::cout << "Custo da Solução: " << solucao.custo << std::endl;
+        std::cout << "Score da Solução: " << solucao.score << std::endl;
+        std::cout << "Qualidade da Solução: " << solucao.qualidade << std::endl;
         std::cout << "Tempo Gasto: " << solucao.tempoGasto << std::endl;
     }
 }
