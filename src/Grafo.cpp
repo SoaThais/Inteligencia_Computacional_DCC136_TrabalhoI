@@ -72,8 +72,8 @@ double Grafo::refazCalculoAresta(listaids_t verticesRefatorados){
     double refatorado = 0;
     double custoOriginalAresta = matrizDist[verticesRefatorados[0]][verticesRefatorados[1]];
     double custoArestasNovas = matrizDist[verticesRefatorados[0]][verticesRefatorados[2]] + matrizDist[verticesRefatorados[2]][verticesRefatorados[1]];
-    std::cout << "CustoArestasNovas: " << matrizDist[verticesRefatorados[0]][verticesRefatorados[2]] << " | " << matrizDist[verticesRefatorados[2]][verticesRefatorados[1]]<< std::endl;
-    std::cout << "custoOriginalAresta: " << custoOriginalAresta << std::endl;
+    // std::cout << "CustoArestasNovas: " << matrizDist[verticesRefatorados[0]][verticesRefatorados[2]] << " | " << matrizDist[verticesRefatorados[2]][verticesRefatorados[1]]<< std::endl;
+    // std::cout << "custoOriginalAresta: " << custoOriginalAresta << std::endl;
     refatorado = custoArestasNovas - custoOriginalAresta;
     return refatorado;
 }
@@ -200,7 +200,7 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
 
     for (int k = 0; k <= nTrips-1; k++){
         distanciasResultado.push_back(matrizDist[resultado[k].id()][resultado[k+1].id()]);
-        std::cout << distanciasResultado[k] << std::endl;
+        // std::cout << distanciasResultado[k] << std::endl;
     }
     setaTamTrips(distanciasResultado);
 
@@ -352,7 +352,7 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             if (v.id() == 0 && !v.isHotel())
                 insercaoProibida = true;
 
-            if (getVerticeById(insereEntre[0]).isHotel()){
+            if (getVerticeById(insereEntre[0]).isHotel() || ( getVerticeById(insereEntre[1]).id()== 0 && getVerticeById(insereEntre[1]).isHotel()) ){
                 if(!verticesTrip.empty()) {
                     std::cout << std::endl;
                     std::cout << "______________VERTICES_DE_UMA_TRIP_" << tripAtual << "_______________" << std::endl;
@@ -374,8 +374,6 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
                 verticesRefatorados.push_back(v.id());
                 double novoCusto = refazCalculoAresta(verticesRefatorados);
                 atualizaTamanhoTripT(novoCusto, tripAtual);
-                std::cout << "NovoCusto: " << novoCusto << std::endl;
-                std::cout << "TamTrip: " << this->listaTamanhoTrips[tripAtual - 1] << std::endl;
             }
             verticesTrip.push_back(getVerticeById(insereEntre[1]));
             imprimeListaTripTour();
