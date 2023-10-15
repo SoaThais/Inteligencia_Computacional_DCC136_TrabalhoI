@@ -9,6 +9,7 @@
 #define ERR_FULL_TRIPS                   4
 #define ERR_NOT_VIABLE                   5
 
+
 Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax):
     _graphName(graphName),
     _numeroHoteis(numeroDeHoteis),
@@ -20,6 +21,15 @@ Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHote
     this->listaTamanhoTrips.reserve(numeroDeTrips);
     this->listaCheckTrips.reserve(numeroDeTrips);
     this->listaTamanhoMaxTrips.reserve(numeroDeTrips);
+}
+
+void printCustomHeader(const std::string& customText) {
+    std::cout << std::endl;
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
+    std::cout << customText << std::endl;
+    std::cout << "___________________________________________________________" << std::endl;
+    std::cout << std::endl;
 }
 
 /*--------------------------------*/
@@ -206,17 +216,27 @@ listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandid
 
 
 /*--------------------------------*/
-/*-----------Construtivo----------*/
+/*-----------CONSTRUTIVO----------*/
 /*--------------------------------*/
 
 listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice hotelAnterior, size_t t){
+
     listavertices_t viaveis;
     std::cout << std::endl;
     std::cout << "Hotel Anterior: " << hotelAnterior.id() << std::endl;
     std::cout << "Trip: " << t << std::endl;
-    //se quiser evitar repetição, evitar ids iguais
+
+
+    /*--------------------------------*/
+    /*---ANALISA VIABILIDADE HOTEIS---*/
+    /*--------------------------------*/
+
     for (size_t k = 2; k < hoteis.size(); k++){
-        //evitando repetição para que nao perca uma trip no começo em instancias grandes
+
+        /*--------------------------------*/
+        /*-------INSTANCIAS GRANDES-------*/
+        /*--------------------------------*/
+
         if(hoteis.size() >= 10){
             if(k!=hotelAnterior.id()){
                 if(matrizDist[hotelAnterior.id()][hoteis[k].id()] < this->listaTamanhoMaxTrips[t]){
@@ -229,6 +249,11 @@ listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice ho
                 }
             }
         }
+
+        /*--------------------------------*/
+        /*-------INSTANCIAS PEQUENAS-------*/
+        /*--------------------------------*/
+
         else{
             if(matrizDist[hotelAnterior.id()][hoteis[k].id()] < this->listaTamanhoMaxTrips[t]){
                 if(t == numeroDeTrips()-2){
@@ -240,11 +265,10 @@ listavertices_t Grafo::selecionaHoteisViaveis(listavertices_t hoteis, Vertice ho
             }
         }
     }
-    std::cout << std::endl;
-    std::cout << "_________________HOTEIS_VIAVEIS_PARA_TAM=" << this->listaTamanhoMaxTrips[t] << "__________________" << std::endl;
-    std::cout << std::endl;
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
+
+
+    printCustomHeader("HOTEIS_VIAVEIS");
+    std::cout << "Para Trip de T_D = = " << this->listaTamanhoMaxTrips[t] << std::endl;
     for (size_t i = 0; i < viaveis.size(); i++) {
         if(viaveis[i].isHotel())
             { std::cout << "H" << viaveis[i].id() << " | ";}
@@ -442,7 +466,6 @@ bool Grafo::condicoesParadaClientes(int& breakFlag, listavertices_t clientesCand
             cont += 1;
         }
     }
-    std::cerr << cont << " TRIPS CHEIAS" << std::endl;
     if (cont == numeroDeTrips()){
         breakFlag = ERR_FULL_TRIPS;
         std::cerr << "TODAS AS TRIPS CHEIAS!" << std::endl;
@@ -465,7 +488,7 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             bool insercaoProibida = false;
 
             /*--------------------------------*/
-            /*-------SELEÇÃO VÉRTICE V--------*/
+            /*-------VERTICES DE ORIGEM-------*/
             /*--------------------------------*/
 
             //IDs APENAS
@@ -480,19 +503,20 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             candidatosAtuais.push_back(listaCandidatos.at(i-1));
             tripAtual = candidatosAtuais[0].tripId().first;
 
+
+            /*--------------------------------*/
+            /*-----SELEÇÃO NOVO VÉRTICE V-----*/
+            /*--------------------------------*/
+
             if(this->listaCheckTrips[tripAtual-1]){
                 std::cout << "TRIP-" << tripAtual << " JA BLOQUEADA" << std::endl;
                 continue;
             }
 
-            std::cout << std::endl;
-            std::cout << "______________PREPARA_PARA_INSERIR_______________" << std::endl;
-            std::cout << std::endl;
+            printCustomHeader("PREPARA PARA INSERIR");
             std::cout << "Vai inserir na TRIP-" << tripAtual << ", entre: " << idsAtuais[0] << " e " << idsAtuais[1] << std::endl;
             std::cout << candidatosAtuais[0].toString() << std::endl;
             std::cout << candidatosAtuais[1].toString() << std::endl;
-
-
 
             Vertice v = selecionaClienteIdeal(idsAtuais, clientesCandidatos, tripAtual);
 
@@ -513,23 +537,25 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
                 this->listaCheckTrips[tripAtual-1] = 1;
             }
 
+            /*--------------------------------*/
+            /*------INSERE E ATULIZA IDS------*/
+            /*--------------------------------*/
 
             if(!insercaoProibida){
-
                 idsVerticesQuebrados.push_back(v.id());
                 atualizaTamanhoTripT(idsVerticesQuebrados, tripAtual);
-                std::cout << "Inseriu o vertice: " << v.id() << std::endl;
                 atualizaIdTrips(v, tripAtual, tripAtual);
                 listaCandidatos.insert(listaCandidatos.begin() + i, v);
+
+                std::cout << "Inseriu o vertice: " << v.id() << std::endl;
+
                 int posicao = getVerticeIndex(clientesCandidatos, v);
                 clientesCandidatos.erase(clientesCandidatos.begin() + posicao);
             }
 
             imprimeListaTripTour();
-
-            //Depois tratar se totalTour > Tmax
-
         }
+
         k++;
         std::cout << "Lista de candidatos na " << k << "º insercao " << std::endl;
         imprimeListaVertices(listaCandidatos);
@@ -546,25 +572,21 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
     /*-------FASE CONSTRUTIVA---------*/
     /*--------------------------------*/
 
-    std::cout << "________________ETAPA_CONSTRUCAO_________________" << std::endl;
-    std::cout << std::endl;
+    printCustomHeader("INICIO ETAPA 1 GULOSO - CONSTRUÇÃO");
     listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos);
 
-    std::cout << "______________FIM_ETAPA_CONSTRUCAO_______________" << std::endl;
-    std::cout << std::endl;
+    printCustomHeader("FIM ETAPA 1 GULOSO - CONSTRUÇÃO");
     imprimeListaVertices(listaCandidatos);
-
 
     /*--------------------------------*/
     /*---------FASE INSERÇÃO----------*/
     /*--------------------------------*/
 
-    std::cout << "________________ETAPA_DE_INSERCAO_________________" << std::endl;
-    std::cout << std::endl;
+
+    printCustomHeader("INICIO ETAPA 2 GULOSO - INSERÇÃO");
     listaCandidatos = insereClientes(listaCandidatos, todosClientesCandidatos);
 
-    std::cout << "______________FIM_ETAPA_INSERCAO_______________" << std::endl;
-    std::cout << std::endl;
+    printCustomHeader("FIM ETAPA 2 GULOSO - INSERÇÃO");
     imprimeListaVertices(listaCandidatos);
 
     return listaCandidatos;
@@ -577,26 +599,21 @@ void Grafo::geraSolucao(){
     /*--------------------------------*/
 
     listavertices_t todosHoteisCandidatos(this->listaVertices.begin(), this->listaVertices.begin() + 2 + numeroDeHoteis());
-
-    std::cout << std::endl;
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-    std::cout << "________________LISTA_DE_HOTEIS_CANDIDATOS_________________" << std::endl;
-    std::cout << std::endl;
+    printCustomHeader("LISTA_DE_HOTEIS_CANDIDATOS");
     imprimeListaVertices(todosHoteisCandidatos);
 
     listavertices_t todosClientesCandidatos(this->listaVertices.begin() + 2 + numeroDeHoteis(), this->listaVertices.end());
-
-    std::cout << "___________LISTA_DE_PONTOS_TURISTICOS_CANDIDATOS____________" << std::endl;
-    std::cout << std::endl;
+    printCustomHeader("LISTA_DE_PONTOS_TURISTICOS_CANDIDATOS");
     imprimeListaVertices(todosClientesCandidatos);
 
-    std::cout << "________________INICIO_GULOSO_________________" << std::endl;
-    std::cout << std::endl;
+    /*--------------------------------*/
+    /*------GERA SOLUÇÃO GULOSA-------*/
+    /*--------------------------------*/
+
+    printCustomHeader("INICIO GULOSO");
     listavertices_t solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
 
-    std::cout << "______________FIM_GULOSO_______________" << std::endl;
-    std::cout << std::endl;
+    printCustomHeader("FIM GULOSO");
     imprimeListaTripTour();
 
 }
@@ -682,6 +699,7 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
     }
 
     g.setaMatrizDists();
+    g.imprimeGrafo();
 
     return g;
 }
@@ -704,27 +722,8 @@ void Grafo::imprimeGrafo(){
         std::cout << this->listaTamanhoTrips[i] << " | ";
     }
     std::cout << std::endl;
+    imprimeListaVertices(this->listaVertices);
 
-    imprimeGrafoHelper();
-
-}
-
-void Grafo::imprimeGrafoHelper(){
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Lista de Vertices: " << std::endl;
-    std::cout << std::endl;
-    for (size_t i = 0; i < numeroDeVertices(); i++) {
-        if(i == 0){ std::cout << "H_i" << " | ";}
-        else if(i == 1){ std::cout << "H_f" << " | ";}
-        else if(i < 2 + numeroDeHoteis())
-            { std::cout << "H" << listaVertices[i].id() << " | ";}
-        else{ std::cout << "V" << listaVertices[i].id() << " | ";}
-
-        std::cout << this->listaVertices[i].toString() << std::endl;
-    }
-    std::cout << "___________________________________________________________" << std::endl;
-    std::cout << std::endl;
 }
 
 void Grafo::imprimeListaVertices(listavertices_t verticesToPrint){
