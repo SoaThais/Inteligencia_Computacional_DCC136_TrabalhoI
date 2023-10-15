@@ -28,9 +28,10 @@ Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHote
 void Grafo::setaTamMaxTrips(listatour_t tamTrips) {
     this->listaTamanhoMaxTrips = tamTrips;
 }
-
 void Grafo::setaTamTrips(listatour_t tamTrips) {
     this->listaTamanhoTrips = tamTrips;
+}
+void Grafo::setaCheckTrips(listatour_t tamTrips) {
     this->listaCheckTrips = tamTrips;
 }
 
@@ -71,6 +72,8 @@ double Grafo::refazCalculoAresta(listaids_t verticesRefatorados){
     double refatorado = 0;
     double custoOriginalAresta = matrizDist[verticesRefatorados[0]][verticesRefatorados[1]];
     double custoArestasNovas = matrizDist[verticesRefatorados[0]][verticesRefatorados[2]] + matrizDist[verticesRefatorados[2]][verticesRefatorados[1]];
+    std::cout << "CustoArestasNovas: " << matrizDist[verticesRefatorados[0]][verticesRefatorados[2]] << " | " << matrizDist[verticesRefatorados[2]][verticesRefatorados[1]]<< std::endl;
+    std::cout << "custoOriginalAresta: " << custoOriginalAresta << std::endl;
     refatorado = custoArestasNovas - custoOriginalAresta;
     return refatorado;
 }
@@ -181,6 +184,8 @@ listavertices_t Grafo::quickSort(size_t idOrigem, listavertices_t clientesCandid
 listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips) {
 
     listavertices_t resultado;
+    listatour_t distanciasResultado;
+
     resultado.push_back(hoteis[0]);
 
     for (int i = 0; i < nTrips-1; i++) {
@@ -192,6 +197,12 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
         resultado.push_back(hoteis[j]);
     }
     resultado.push_back(hoteis[1]);
+
+    for (int k = 0; k <= nTrips-1; k++){
+        distanciasResultado.push_back(matrizDist[resultado[k].id()][resultado[k+1].id()]);
+        std::cout << distanciasResultado[k] << std::endl;
+    }
+    setaTamTrips(distanciasResultado);
 
     return resultado;
 }
@@ -348,7 +359,7 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
                     std::cout << std::endl;
                     imprimeListaVertices(verticesTrip);
                     if (insercaoProibida)
-                        this->listaCheckTrips[tripAtual] = 1;
+                        this->listaCheckTrips[tripAtual-1] = 1;
                     tripAtual--;
                     verticesTrip.clear();
                 }
@@ -363,7 +374,8 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
                 verticesRefatorados.push_back(v.id());
                 double novoCusto = refazCalculoAresta(verticesRefatorados);
                 atualizaTamanhoTripT(novoCusto, tripAtual);
-
+                std::cout << "NovoCusto: " << novoCusto << std::endl;
+                std::cout << "TamTrip: " << this->listaTamanhoTrips[tripAtual - 1] << std::endl;
             }
             verticesTrip.push_back(getVerticeById(insereEntre[1]));
             imprimeListaTripTour();
@@ -499,9 +511,8 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
 
     g.setaTamMaxTrips(tamTrips);
 
-    listatour_t tamTripInicial(nTrips, 0);
-
-    g.setaTamTrips(tamTripInicial);
+    listatour_t CheckTripInicial(nTrips, 0);
+    g.setaCheckTrips(CheckTripInicial);
 
     for (size_t i = 0; i < nVertices; i++) {
         std::string str_linha;

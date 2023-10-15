@@ -41,6 +41,7 @@ class Grafo {
         //Sets e Gets
         void setaTamMaxTrips(listatour_t tamTrips);
         void setaTamTrips(listatour_t tamTrips);
+        void setaCheckTrips(listatour_t tamTrips);
         void setaVariancias(listavariancias_t variancias);
         void setaMatrizDists();
         Vertice& getVerticeById(size_t id);
