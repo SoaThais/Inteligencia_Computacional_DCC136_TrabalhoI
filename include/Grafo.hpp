@@ -45,14 +45,20 @@ class Grafo {
         void setaMatrizDists();
         Vertice& getVerticeById(size_t id);
         int getVerticeIndex(listavertices_t verticeVector, Vertice v);
-        void calculaTamanhoTripK(listavertices_t verticesTour, size_t k);
-        bool insercaoViavel(size_t i, size_t j, size_t k);
+
+        //Viabilidade
+        void atualizaTamanhoTripT(double novoCusto, size_t t);
+        double refazCalculoAresta(listaids_t verticesRefatorados);
+        void calculaTamanhoTripK(listavertices_t verticesTour, size_t t);
+        bool insercaoViavel(size_t i, size_t j, size_t t);
 
         //Auxiliares
         double distanciaEuclidiana(Vertice a, Vertice b);
         double calculaVariancia(double media, double *distancias);
         double** calculaMatrizDistancias();
         Vertice maiorScore(listavertices_t vertices);
+
+        //Quicksort
         size_t particionamento(listavertices_t& listaOrdenada, size_t p, size_t q, size_t idOrigem);
         void auxQuickSort(listavertices_t& listaOrdenada, size_t p, size_t q, size_t idOrigem);
         listavertices_t quickSort(size_t idOrigem, listavertices_t verticesCandidatos);

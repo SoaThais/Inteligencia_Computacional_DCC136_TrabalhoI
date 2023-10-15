@@ -62,17 +62,21 @@ int Grafo::getVerticeIndex(listavertices_t verticeVector, Vertice v)
     return index;
 }
 
-void Grafo::calculaTamanhoTripK(listavertices_t verticesTrip, size_t k){
-    this->listaTamanhoTrips[k-1] = 0;
-    for (int i = verticesTrip.size() - 1; i >= 0; i--){
-        // std::cout << "ID1 - " << verticesTrip[i - 1].id();
-        // std::cout << "- ID2 - " << verticesTrip[i].id();
-        // std::cout << "- Distancia - " << matrizDist[verticesTrip[i - 1].id()][verticesTrip[i].id()] << std::endl;
-        this->listaTamanhoTrips[k-1] += matrizDist[verticesTrip[i - 1].id()][verticesTrip[i].id()];
-        if (verticesTrip[i - 1].isHotel()){
-            break;
-        }
-    }
+void Grafo::atualizaTamanhoTripT(double novoCusto, size_t t){
+    this->listaTamanhoTrips[t-1] += novoCusto;
+}
+
+double Grafo::refazCalculoAresta(listaids_t verticesRefatorados){
+    //0 - entre0 | 1 - entre1 | 2 - verticeNovo
+    double refatorado = 0;
+    double custoOriginalAresta = matrizDist[verticesRefatorados[0]][verticesRefatorados[1]];
+    double custoArestasNovas = matrizDist[verticesRefatorados[0]][verticesRefatorados[2]] + matrizDist[verticesRefatorados[2]][verticesRefatorados[1]];
+    refatorado = custoArestasNovas - custoOriginalAresta;
+    return refatorado;
+}
+
+bool Grafo::insercaoViavel(size_t i, size_t j, size_t t){
+    return this->listaTamanhoTrips[t - 1] + matrizDist[i][j] <= this->listaTamanhoMaxTrips[t - 1];
 }
 
 
@@ -192,10 +196,6 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
     return resultado;
 }
 
-bool Grafo::insercaoViavel(size_t i, size_t j, size_t k){
-    return this->listaTamanhoTrips[k - 1] + matrizDist[i][j] <= this->listaTamanhoMaxTrips[k - 1];
-}
-
 Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t){
 
     if (clientesCandidatos.size() == 1){
@@ -224,9 +224,6 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         if (insercaoViavel(possiveis1[0].id(), insereEntre[1], t))
             v = possiveis1[0];
     }
-    // else if (clientesCandidatos.size() <= limitador){
-    //     v = maiorScore(clientesCandidatos);
-    // }
     else{
 
         /*--------------------------------*/
@@ -279,9 +276,6 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
             else if(k >= i && k < j){
                 toleranciaCombo.push_back(tolerancia1[k]);
             }
-            // else{
-            //     v = maiorScore(tolerancia0);
-            // }
         }
 
         if (!toleranciaCombo.empty())
@@ -300,7 +294,7 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
         size_t tripAtual = numeroDeTrips();
         listavertices_t verticesTrip;
         for (int i = listaCandidatos.size() - 1; i > 0; i--) {
-            
+
             bool insercaoProibida = false;
 
             if(clientesCandidatos.empty()){
@@ -309,9 +303,10 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             }
 
             size_t cont = 0;
-            for(size_t l = 0; l < this->listaCheckTrips.size(); i++){
-                if (this->listaCheckTrips[tripAtual] == 1)
+            for(size_t l = 0; l < this->listaCheckTrips.size(); l++){
+                 if (this->listaCheckTrips[l] == 1){
                     cont += 1;
+                }
             }
 
             if (cont == numeroDeTrips()){
@@ -328,10 +323,6 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             insereEntre.push_back(listaCandidatos.at(i-1).id());
             Vertice v = selecionaClienteIdeal(insereEntre, clientesCandidatos, tripAtual);
 
-            if (v.id() == 0)
-                insercaoProibida = true;
-                // continue;
-
             if(v.id() > numeroDeVertices()){
                 breakFlag = ERR_VERTEX_NON_EXIST;
                 break;
@@ -347,6 +338,9 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             /*------TRATAMENTO INSERÇÃO-------*/
             /*--------------------------------*/
 
+            if (v.id() == 0 && !v.isHotel())
+                insercaoProibida = true;
+
             if (getVerticeById(insereEntre[0]).isHotel()){
                 if(!verticesTrip.empty()) {
                     std::cout << std::endl;
@@ -360,21 +354,26 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
                 }
                 verticesTrip.push_back(getVerticeById(insereEntre[0]));
             }
-            verticesTrip.push_back(v);
-            verticesTrip.push_back(getVerticeById(insereEntre[1]));
 
-            calculaTamanhoTripK(verticesTrip, tripAtual);
+            if(!insercaoProibida){
+                verticesTrip.push_back(v);
+                listaids_t verticesRefatorados;
+                verticesRefatorados.push_back(insereEntre[0]);
+                verticesRefatorados.push_back(insereEntre[1]);
+                verticesRefatorados.push_back(v.id());
+                double novoCusto = refazCalculoAresta(verticesRefatorados);
+                atualizaTamanhoTripT(novoCusto, tripAtual);
+
+            }
+            verticesTrip.push_back(getVerticeById(insereEntre[1]));
             imprimeListaTripTour();
 
-            // //Tratamento para trip > tam permitido, caso contrario isso:
-            // if(this->listaTamanhoTrips[tripAtual] >= this->listaTamanhoMaxTrips[tripAtual]){
-                
-            // }
-            // else{
+            if(!insercaoProibida){
                 listaCandidatos.insert(listaCandidatos.begin() + i, v);
                 int posicao = getVerticeIndex(clientesCandidatos, v);
                 clientesCandidatos.erase(clientesCandidatos.begin() + posicao);
-            // }
+            }
+
             //Depois tratar se totalTour > Tmax
 
         }
@@ -604,7 +603,7 @@ void Grafo::imprimeListaTripTour(){
     std::cout << std::endl;
     float somaTour = 0;
     for (size_t i = 0; i < numeroDeTrips(); i++) {
-        std::cout << "TRIP_" << i << " - " << this->listaTamanhoTrips[i] << " | " << this->listaTamanhoMaxTrips[i] << std::endl;
+        std::cout << "TRIP_" << i << " - " << this->listaTamanhoTrips[i] << " | " << this->listaTamanhoMaxTrips[i] <<  " | " << this->listaCheckTrips[i] << std::endl;
         somaTour += this->listaTamanhoTrips[i];
     }
     std::cout << "TOUR" << " - " << somaTour << " | " << tamanhoMaximo() << std::endl;
