@@ -109,8 +109,10 @@ double Grafo::refazCalculoAresta(listaids_t verticesQuebrados){
 }
 
 bool Grafo::insercaoViavel(listaids_t verticesQuebrados, size_t t){
-    double novoCustoTrip = this->listaTamanhoTrips[t - 1] + refazCalculoAresta(verticesQuebrados);
-    if(novoCustoTrip < this->listaTamanhoMaxTrips[t - 1] && getCustoTour() <= tamanhoMaximo() && !this->listaCheckTrips[t-1]){
+    double diferenca = refazCalculoAresta(verticesQuebrados);
+    double novoCustoTrip = this->listaTamanhoTrips[t - 1] + diferenca;
+    double novoCustoTour = getCustoTour() + diferenca;
+    if(novoCustoTrip < this->listaTamanhoMaxTrips[t - 1] && novoCustoTour <= tamanhoMaximo() && !this->listaCheckTrips[t-1]){
         return true;
     }
     return false;
