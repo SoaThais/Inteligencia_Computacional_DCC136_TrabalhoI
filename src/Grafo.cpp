@@ -699,9 +699,13 @@ void Grafo::buscaLocal(std::vector<Vertice>& solucao) {
                 double custoAtual = calculaCustoSolucao(solucao);
                 double custoNovo = calculaCustoSolucao(novaSolucao);
 
-                if (custoAtual - custoNovo > LIMITE_BL) {
-                    std::cout << "Custo Pre Swap " << custoAtual <<  std::endl;
-                    std::cout << "Custo Pos Swap " << custoNovo << std::endl;
+                printCustomHeader("EITAAA");
+                imprimeListaVertices(solucao);
+                imprimeListaVertices(novaSolucao);
+
+                if (custoNovo - custoAtual > 0.1) {
+                    // std::cout << "Custo Pre Swap " << custoAtual <<  std::endl;
+                    // std::cout << "Custo Pos Swap " << custoNovo << std::endl;
                     solucao = novaSolucao;
                     melhoriaEncontrada = true;
                 }
@@ -786,27 +790,37 @@ void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
         /*----GERA-SOLUÇÃO-BUSCA-LOCAL----*/
         /*--------------------------------*/
 
+        /*--------------------------------*/
+        /*----------OBTEM-GULOSA----------*/
+        /*--------------------------------*/
+
+        printCustomHeader("INICIO GULOSO DA BUSCA LOCAL");
+        solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
+        printCustomHeader("FIM GULOSO DA BUSCA LOCAL");
+        imprimeListaTripTour();
+
+        custosDasSolucoesBL.push_back(calculaCustoSolucao(solucao));
+        scoreDasSolucoesBL.push_back(calculaScoreSolucao(solucao));
+
+        std::cout << "CUSTO ENCONTRADO GULOSO: " << custosDasSolucoesBL[0] << std::endl;
+        std::cout << "SCORE ENCONTRADO GULOSO: " << scoreDasSolucoesBL[0] << std::endl;
+
+        setaScoreSol(scoreDasSolucoesBL[0]);
+        setaCustoSol(custosDasSolucoesBL[0]);
+
+        melhorSolucao = solucao;
+
         for(size_t it = 0; it < maxIt; it++){
 
             printCustomHeader("INICIO DA " + std::to_string(it) + "º INTERAÇÃO");
             itRodadas++;
 
             /*--------------------------------*/
-            /*----------OBTEM-GULOSA----------*/
-            /*--------------------------------*/
-
-            printCustomHeader("INICIO GULOSO DA BUSCA LOCAL");
-            solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
-            printCustomHeader("FIM GULOSO DA BUSCA LOCAL");
-            imprimeListaTripTour();
-            std::cout << "CUSTO ENCONTRADO GULOSO: " << calculaCustoSolucao(solucao) << std::endl;
-
-            /*--------------------------------*/
             /*-----------BUSCA-LOCAL----------*/
             /*--------------------------------*/
 
             printCustomHeader("INICIO BUSCA LOCAL");
-            buscaLocal(melhorSolucao);
+            buscaLocal(solucao);
             printCustomHeader("FIM BUSCA LOCAL");
 
             /*--------------------------------*/
@@ -816,34 +830,31 @@ void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
             custosDasSolucoesBL.push_back(calculaCustoSolucao(solucao));
             scoreDasSolucoesBL.push_back(calculaScoreSolucao(solucao));
 
-            std::cout << "CUSTO ENCONTRADO BUSCA LOCAL: " << custosDasSolucoesBL[it] << std::endl;
-            std::cout << "SCORE ENCONTRADO BUSCA LOCAL: " << scoreDasSolucoesBL[it] << std::endl;
+            std::cout << "CUSTO ENCONTRADO BUSCA LOCAL: " << custosDasSolucoesBL[it + 1] << std::endl;
+            std::cout << "SCORE ENCONTRADO BUSCA LOCAL: " << scoreDasSolucoesBL[it + 1] << std::endl;
 
             /*--------------------------------*/
             /*----CRITERIO-ATUALIZA-PARA------*/
             /*--------------------------------*/
 
-            if(it == 0){melhorSolucao = solucao;}
-            else if(it >= 1){
 
-                double qualidadeAtual = scoreDasSolucoesBL[it]/custosDasSolucoesBL[it];
-                double qualidadeMelhor = calculaScoreSolucao(melhorSolucao)/calculaCustoSolucao(melhorSolucao);
+            double qualidadeAtual = scoreDasSolucoesBL[it + 1] / custosDasSolucoesBL[it + 1];
+            double qualidadeMelhor = getScoreSol() / getCustoSol();
 
-                std::cout << "QUALIDADE ATUAL: " << qualidadeAtual << std::endl;
-                std::cout << "QUALIDADE MELHOR: " << qualidadeMelhor << std::endl;
+            std::cout << "QUALIDADE ATUAL: " << qualidadeAtual << std::endl;
+            std::cout << "QUALIDADE MELHOR: " << qualidadeMelhor << std::endl;
 
-                double diferencaQualidade = qualidadeAtual - qualidadeMelhor;
+            double diferencaQualidade = qualidadeAtual - qualidadeMelhor;
 
-                if(qualidadeAtual >= qualidadeMelhor){
-                    melhorSolucao = solucao;
-                    setaScoreSol(scoreDasSolucoesBL[it]);
-                    setaCustoSol(custosDasSolucoesBL[it]);
-                }
+            if(diferencaQualidade > 0.1){
+                melhorSolucao = solucao;
+                setaScoreSol(scoreDasSolucoesBL[it + 1]);
+                setaCustoSol(custosDasSolucoesBL[it + 1]);
+            }
 
-                if(it > maxIt/2 && diferencaQualidade < LIMITE_BL){
-                    printCustomHeader("ENCERRADO NA " + std::to_string(it+1) + "º INTERAÇÃO");
-                    break;
-                }
+            if(it > maxIt / 2 && diferencaQualidade < LIMITE_BL){
+                printCustomHeader("ENCERRADO NA " + std::to_string(it + 1) + "º INTERAÇÃO");
+                break;
             }
 
             printCustomHeader("FIM DA " + std::to_string(it) + "º INTERAÇÃO");
