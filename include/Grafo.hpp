@@ -70,6 +70,7 @@ class Grafo {
         listavertices_t selecionaHoteisViaveis(listavertices_t hoteis, Vertice hotelAnterior, size_t t);
         listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis);
         Vertice selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t);
+        bool condicoesParadaClientes(int& breakFlag, listavertices_t clientesCandidatos);
         listavertices_t insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos);
 
 

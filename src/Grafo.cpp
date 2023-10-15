@@ -38,7 +38,8 @@ void Grafo::setaCheckTrips(listatour_t tamTrips) {
 
 void Grafo::atualizaIdTrips(Vertice& v, size_t t, size_t t2) {
     v.updateTripId(t, t2);
-    std::cout << "Atualizando : " << v.toString() << std::endl;}
+    // std::cout << "Atualizando : " << v.toString() << std::endl;
+}
 
 void Grafo::setaVariancias(listavariancias_t variancias) {
     this->listaVariancias = variancias;
@@ -156,6 +157,11 @@ Vertice Grafo::maiorScore(listavertices_t vertices) {
   return maior;
 }
 
+
+/*--------------------------------*/
+/*-----------Quick Sort-----------*/
+/*--------------------------------*/
+
 size_t Grafo::particionamento(listavertices_t& listaOrdenada, size_t p, size_t q, size_t idOrigem)
 {
     size_t i = p - 1, j = q;
@@ -264,6 +270,7 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis) {
 
     resultado.push_back(hoteis[0]);
 
+    //Acrescrentar do while para escapar do else
     for (size_t i = 0; i < numeroDeTrips()-1; i++) {
         listavertices_t hoteisViaveis = selecionaHoteisViaveis(hoteis, resultado[i], i);
         if(hoteisViaveis.size() > 1){
@@ -305,6 +312,8 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis) {
 
     setaTamTrips(distanciasResultado);
 
+    listatour_t CheckTripInicial(numeroDeTrips(), 0);
+    setaCheckTrips(CheckTripInicial);
 
     return resultado;
 }
@@ -411,6 +420,37 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
     return v;
 }
 
+bool Grafo::condicoesParadaClientes(int& breakFlag, listavertices_t clientesCandidatos){
+
+    /*--------------------------------*/
+    /*-------Candidatos Vazia---------*/
+    /*--------------------------------*/
+
+    if(clientesCandidatos.empty()){
+        breakFlag = ERR_EMPTY_CANDIDATES;
+        std::cerr << "LISTA DE CANDIDATOS VAZIA" << std::endl;
+        return true;
+    }
+
+    /*--------------------------------*/
+    /*-------Todas Trips Cheias-------*/
+    /*--------------------------------*/
+
+    size_t cont = 0;
+    for(size_t l = 0; l < this->listaCheckTrips.size(); l++){
+            if (this->listaCheckTrips[l] == 1){
+            cont += 1;
+        }
+    }
+    if (cont == numeroDeTrips()){
+        breakFlag = ERR_FULL_TRIPS;
+        std::cerr << "TODAS AS TRIPS CHEIAS" << std::endl;
+        return true;
+    }
+
+    return false;
+}
+
 listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos) {
 
     int breakFlag = 0;
@@ -418,26 +458,11 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
     do
     {
         size_t tripAtual = numeroDeTrips();
-        listavertices_t verticesTrip;
         for (int i = listaCandidatos.size() - 1; i > 0; i--) {
 
+            if(condicoesParadaClientes(breakFlag, clientesCandidatos)){break;}
+
             bool insercaoProibida = false;
-            if(clientesCandidatos.empty()){
-                breakFlag = ERR_EMPTY_CANDIDATES;
-                break;
-            }
-
-            size_t cont = 0;
-            for(size_t l = 0; l < this->listaCheckTrips.size(); l++){
-                 if (this->listaCheckTrips[l] == 1){
-                    cont += 1;
-                }
-            }
-
-            if (cont == numeroDeTrips()){
-                breakFlag = ERR_FULL_TRIPS;
-                break;
-            }
 
             /*--------------------------------*/
             /*-------SELEÇÃO VÉRTICE V--------*/
@@ -453,6 +478,7 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
 
             if(v.id() > numeroDeVertices()){
                 breakFlag = ERR_VERTEX_NON_EXIST;
+                std::cerr << "ERRO: VERTICE NAO EXISTE" << std::endl;
                 break;
             }
 
@@ -462,37 +488,40 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
 
             if (v.id() == 0 && !v.isHotel()){
                 insercaoProibida = true;
-                std::cout << "INSERCAO PROIBIDA" << tripAtual-1 << std::endl;
+                std::cout << "INSERCAO PROIBIDA EM TRIP-" << tripAtual << std::endl;
             }
 
-            if (getVerticeById(insereEntre[0]).id() != 1 && getVerticeById(insereEntre[0]).isHotel()){
-                if(!verticesTrip.empty()) {
-                    if (insercaoProibida){
-                        std::cout << "LOCKING TRIP_" << tripAtual-1 << std::endl;
-                        this->listaCheckTrips[tripAtual-1] = 1;
-                    }
-                    tripAtual--;
-                    verticesTrip.clear();
-                }
-                verticesTrip.push_back(getVerticeById(insereEntre[0]));
-            }
-            if (getVerticeById(insereEntre[1]).id() == 0 && getVerticeById(insereEntre[1]).isHotel()){
-                if (insercaoProibida){
+
+            if (insercaoProibida){
+
+                tripAtual = getVerticeById(insereEntre[0]).tripId().first;
+
+
+
+
+                /*---Trava a trip de HXX firstID--*/
+                /*------H0 - HX - (HXX) - H1-----*/
+                /*--------------------------------*/
+
+                if (getVerticeById(insereEntre[0]).isHotel()){
                     std::cout << "LOCKING TRIP_" << tripAtual << std::endl;
-                    this->listaCheckTrips[tripAtual-1] = 1;
+                    this->listaCheckTrips[tripAtual] = 1;
+                }
+
+                /*---Trava a trip de V2 firstID--*/
+                /*------H0 - HX (V2) - H1-----*/
+                /*--------------------------------*/
+
+                else{
+
                 }
             }
-
 
             if(!insercaoProibida){
-                verticesTrip.push_back(v);
+
                 verticesQuebrados.push_back(v.id());
                 atualizaTamanhoTripT(verticesQuebrados, tripAtual);
-            }
-            verticesTrip.push_back(getVerticeById(insereEntre[1]));
-            imprimeListaTripTour();
 
-            if(!insercaoProibida){
                 std::cout << std::endl;
                 std::cout << "______________PREPARA_PARA_INSERIR_______________" << std::endl;
                 std::cout << std::endl;
@@ -504,10 +533,8 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
                 clientesCandidatos.erase(clientesCandidatos.begin() + posicao);
             }
 
-            std::cout << std::endl;
-            std::cout << "_________________VERTICES_DA_TRIP-" << tripAtual << "__________________" << std::endl;
-            std::cout << std::endl;
-            imprimeListaVertices(verticesTrip);
+            imprimeListaTripTour();
+
             //Depois tratar se totalTour > Tmax
 
         }
@@ -635,9 +662,6 @@ Grafo Grafo::lerArquivo(std::istream& arqEntrada, std::string nomeArquivo)
     Grafo g(graphName, nVertices, nHoteis, nTrips, tMax);
 
     g.setaTamMaxTrips(tamTrips);
-
-    listatour_t CheckTripInicial(nTrips, 0);
-    g.setaCheckTrips(CheckTripInicial);
 
     for (size_t i = 0; i < nVertices; i++) {
         std::string str_linha;
