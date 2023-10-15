@@ -438,13 +438,14 @@ bool Grafo::condicoesParadaClientes(int& breakFlag, listavertices_t clientesCand
 
     size_t cont = 0;
     for(size_t l = 0; l < this->listaCheckTrips.size(); l++){
-            if (this->listaCheckTrips[l] == 1){
+        if (this->listaCheckTrips[l] == 1){
             cont += 1;
         }
     }
+    std::cerr << cont << " TRIPS CHEIAS" << std::endl;
     if (cont == numeroDeTrips()){
         breakFlag = ERR_FULL_TRIPS;
-        std::cerr << "TODAS AS TRIPS CHEIAS" << std::endl;
+        std::cerr << "TODAS AS TRIPS CHEIAS!" << std::endl;
         return true;
     }
 
@@ -461,20 +462,39 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
         for (int i = listaCandidatos.size() - 1; i > 0; i--) {
 
             if(condicoesParadaClientes(breakFlag, clientesCandidatos)){break;}
-
             bool insercaoProibida = false;
 
             /*--------------------------------*/
             /*-------SELEÇÃO VÉRTICE V--------*/
             /*--------------------------------*/
 
-            listaids_t insereEntre;
-            insereEntre.push_back(listaCandidatos.at(i).id());
-            insereEntre.push_back(listaCandidatos.at(i-1).id());
+            //IDs APENAS
+            listaids_t idsAtuais;
+            idsAtuais.push_back(listaCandidatos.at(i).id());
+            idsAtuais.push_back(listaCandidatos.at(i-1).id());
+            listaids_t idsVerticesQuebrados = idsAtuais;
 
-            listaids_t verticesQuebrados = insereEntre;
+            //Vertices com TRIP
+            listavertices_t candidatosAtuais;
+            candidatosAtuais.push_back(listaCandidatos.at(i));
+            candidatosAtuais.push_back(listaCandidatos.at(i-1));
+            tripAtual = candidatosAtuais[0].tripId().first;
 
-            Vertice v = selecionaClienteIdeal(insereEntre, clientesCandidatos, tripAtual);
+            if(this->listaCheckTrips[tripAtual-1]){
+                std::cout << "TRIP-" << tripAtual << " JA BLOQUEADA" << std::endl;
+                continue;
+            }
+
+            std::cout << std::endl;
+            std::cout << "______________PREPARA_PARA_INSERIR_______________" << std::endl;
+            std::cout << std::endl;
+            std::cout << "Vai inserir na TRIP-" << tripAtual << ", entre: " << idsAtuais[0] << " e " << idsAtuais[1] << std::endl;
+            std::cout << candidatosAtuais[0].toString() << std::endl;
+            std::cout << candidatosAtuais[1].toString() << std::endl;
+
+
+
+            Vertice v = selecionaClienteIdeal(idsAtuais, clientesCandidatos, tripAtual);
 
             if(v.id() > numeroDeVertices()){
                 breakFlag = ERR_VERTEX_NON_EXIST;
@@ -489,44 +509,16 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             if (v.id() == 0 && !v.isHotel()){
                 insercaoProibida = true;
                 std::cout << "INSERCAO PROIBIDA EM TRIP-" << tripAtual << std::endl;
+                std::cout << "LOCKING TRIP_" << tripAtual << std::endl;
+                this->listaCheckTrips[tripAtual-1] = 1;
             }
 
-
-            if (insercaoProibida){
-
-                tripAtual = getVerticeById(insereEntre[0]).tripId().first;
-
-
-
-
-                /*---Trava a trip de HXX firstID--*/
-                /*------H0 - HX - (HXX) - H1-----*/
-                /*--------------------------------*/
-
-                if (getVerticeById(insereEntre[0]).isHotel()){
-                    std::cout << "LOCKING TRIP_" << tripAtual << std::endl;
-                    this->listaCheckTrips[tripAtual] = 1;
-                }
-
-                /*---Trava a trip de V2 firstID--*/
-                /*------H0 - HX (V2) - H1-----*/
-                /*--------------------------------*/
-
-                else{
-
-                }
-            }
 
             if(!insercaoProibida){
 
-                verticesQuebrados.push_back(v.id());
-                atualizaTamanhoTripT(verticesQuebrados, tripAtual);
-
-                std::cout << std::endl;
-                std::cout << "______________PREPARA_PARA_INSERIR_______________" << std::endl;
-                std::cout << std::endl;
-                std::cout << "Vai inserir na TRIP-" << tripAtual << ", entre: " << insereEntre[0] << " e " << insereEntre[1] << " o vertice " << v.id() << std::endl;
-
+                idsVerticesQuebrados.push_back(v.id());
+                atualizaTamanhoTripT(idsVerticesQuebrados, tripAtual);
+                std::cout << "Inseriu o vertice: " << v.id() << std::endl;
                 atualizaIdTrips(v, tripAtual, tripAtual);
                 listaCandidatos.insert(listaCandidatos.begin() + i, v);
                 int posicao = getVerticeIndex(clientesCandidatos, v);
@@ -554,11 +546,11 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
     /*-------FASE CONSTRUTIVA---------*/
     /*--------------------------------*/
 
-    std::cout << "________________ETAPA_CONSTRUTIVA_________________" << std::endl;
+    std::cout << "________________ETAPA_CONSTRUCAO_________________" << std::endl;
     std::cout << std::endl;
     listavertices_t listaCandidatos = selecionaHoteisCandidatos(todosHoteisCandidatos);
 
-    std::cout << "______________FIM_ETAPA_CONSTRUTIVA_______________" << std::endl;
+    std::cout << "______________FIM_ETAPA_CONSTRUCAO_______________" << std::endl;
     std::cout << std::endl;
     imprimeListaVertices(listaCandidatos);
 
@@ -570,6 +562,10 @@ listavertices_t Grafo::guloso(listavertices_t todosHoteisCandidatos, listavertic
     std::cout << "________________ETAPA_DE_INSERCAO_________________" << std::endl;
     std::cout << std::endl;
     listaCandidatos = insereClientes(listaCandidatos, todosClientesCandidatos);
+
+    std::cout << "______________FIM_ETAPA_INSERCAO_______________" << std::endl;
+    std::cout << std::endl;
+    imprimeListaVertices(listaCandidatos);
 
     return listaCandidatos;
 }
@@ -595,7 +591,13 @@ void Grafo::geraSolucao(){
     std::cout << std::endl;
     imprimeListaVertices(todosClientesCandidatos);
 
+    std::cout << "________________INICIO_GULOSO_________________" << std::endl;
+    std::cout << std::endl;
     listavertices_t solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
+
+    std::cout << "______________FIM_GULOSO_______________" << std::endl;
+    std::cout << std::endl;
+    imprimeListaTripTour();
 
 }
 
