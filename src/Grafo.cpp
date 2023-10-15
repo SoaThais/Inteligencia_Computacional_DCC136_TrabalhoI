@@ -6,6 +6,7 @@
 #define ERR_EMPTY_CANDIDATES             1
 #define ERR_VERTEX_NON_EXIST             2
 #define ERR_BIG_DISTANCE                 3
+#define ERR_FULL_TRIPS                   4
 
 Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHoteis, size_t numeroDeTrips, size_t tMax):
     _graphName(graphName),
@@ -16,14 +17,13 @@ Grafo::Grafo(std::string graphName, size_t numeroDeVertices, size_t numeroDeHote
     this->listaVertices.reserve(numeroDeVertices);
     this->listaVariancias.reserve(numeroDeVertices);
     this->listaTamanhoTrips.reserve(numeroDeTrips);
+    this->listaCheckTrips.reserve(numeroDeTrips);
     this->listaTamanhoMaxTrips.reserve(numeroDeTrips);
 }
-
 
 /*--------------------------------*/
 /*-----------Sets/Gets-----------*/
 /*--------------------------------*/
-
 
 void Grafo::setaTamMaxTrips(listatour_t tamTrips) {
     this->listaTamanhoMaxTrips = tamTrips;
@@ -31,6 +31,7 @@ void Grafo::setaTamMaxTrips(listatour_t tamTrips) {
 
 void Grafo::setaTamTrips(listatour_t tamTrips) {
     this->listaTamanhoTrips = tamTrips;
+    this->listaCheckTrips = tamTrips;
 }
 
 void Grafo::setaVariancias(listavariancias_t variancias) {
@@ -191,13 +192,18 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis, int nTr
     return resultado;
 }
 
-Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos){
+bool Grafo::insercaoViavel(size_t i, size_t j, size_t k){
+    return this->listaTamanhoTrips[k - 1] + matrizDist[i][j] <= this->listaTamanhoMaxTrips[k - 1];
+}
+
+Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t){
 
     if (clientesCandidatos.size() == 1){
-        return clientesCandidatos[0];
+        if (insercaoViavel(clientesCandidatos[0].id(), insereEntre[0], t))
+            return clientesCandidatos[0];
     }
 
-    Vertice v(0, 0, 0, 0, false);
+    Vertice v(0, 0, 0, -1, false);
 
     listavertices_t possiveis0 = quickSort(insereEntre[0], clientesCandidatos);
     listavertices_t possiveis1 = quickSort(insereEntre[1], clientesCandidatos);
@@ -211,14 +217,16 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
     /*--------------------------------*/
 
     if(menorDist0 <= minimo){
-        v = possiveis0[0];
+        if (insercaoViavel(possiveis0[0].id(), insereEntre[0], t))
+            v = possiveis0[0];
     }
     else if(menorDist1 <= minimo){
-        v = possiveis1[0];
+        if (insercaoViavel(possiveis1[0].id(), insereEntre[1], t))
+            v = possiveis1[0];
     }
-    else if (clientesCandidatos.size() <= limitador){
-        v = maiorScore(clientesCandidatos);
-    }
+    // else if (clientesCandidatos.size() <= limitador){
+    //     v = maiorScore(clientesCandidatos);
+    // }
     else{
 
         /*--------------------------------*/
@@ -230,20 +238,27 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
         listavariancias_t distancias0;
         do
         {
+            if (!insercaoViavel(insereEntre[0], possiveis0[i].id(), t))
+                break;
+
             distancias0.push_back(matrizDist[insereEntre[0]][possiveis0[i].id()]);
             tolerancia0.push_back(possiveis0[i]);
             i = i + 1;
-        } while (i <= limitador && distancias0[i] < menorDist0 + listaVariancias[insereEntre[0]]);
+
+        } while (i < possiveis0.size() && i <= limitador && distancias0[i] < menorDist0 + listaVariancias[insereEntre[0]]);
 
         size_t j = 0;
         listavertices_t tolerancia1;
         listavariancias_t distancias1;
         do
         {
+            if (!insercaoViavel(insereEntre[1], possiveis1[j].id(), t))
+                break;
+
             distancias1.push_back(matrizDist[insereEntre[1]][possiveis1[j].id()]);
             tolerancia1.push_back(possiveis1[j]);
             j = j + 1;
-        } while (j <= limitador && distancias1[j] < menorDist1 + listaVariancias[insereEntre[1]]);
+        } while (j < possiveis1.size()  && j <= limitador && distancias1[j] < menorDist1 + listaVariancias[insereEntre[1]]);
 
 
         /*--------------------------------*/
@@ -264,12 +279,13 @@ Vertice Grafo::selecionaClienteIdeal(listaids_t insereEntre, listavertices_t cli
             else if(k >= i && k < j){
                 toleranciaCombo.push_back(tolerancia1[k]);
             }
-            else{
-                v = maiorScore(tolerancia0);
-            }
+            // else{
+            //     v = maiorScore(tolerancia0);
+            // }
         }
 
-        v = maiorScore(toleranciaCombo);
+        if (!toleranciaCombo.empty())
+            v = maiorScore(toleranciaCombo);
     }
 
     return v;
@@ -284,9 +300,22 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
         size_t tripAtual = numeroDeTrips();
         listavertices_t verticesTrip;
         for (int i = listaCandidatos.size() - 1; i > 0; i--) {
+            
+            bool insercaoProibida = false;
 
             if(clientesCandidatos.empty()){
                 breakFlag = ERR_EMPTY_CANDIDATES;
+                break;
+            }
+
+            size_t cont = 0;
+            for(size_t l = 0; l < this->listaCheckTrips.size(); i++){
+                if (this->listaCheckTrips[tripAtual] == 1)
+                    cont += 1;
+            }
+
+            if (cont == numeroDeTrips()){
+                breakFlag = ERR_FULL_TRIPS;
                 break;
             }
 
@@ -297,7 +326,12 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             listaids_t insereEntre;
             insereEntre.push_back(listaCandidatos.at(i).id());
             insereEntre.push_back(listaCandidatos.at(i-1).id());
-            Vertice v = selecionaClienteIdeal(insereEntre, clientesCandidatos);
+            Vertice v = selecionaClienteIdeal(insereEntre, clientesCandidatos, tripAtual);
+
+            if (v.id() == 0)
+                insercaoProibida = true;
+                // continue;
+
             if(v.id() > numeroDeVertices()){
                 breakFlag = ERR_VERTEX_NON_EXIST;
                 break;
@@ -319,6 +353,8 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
                     std::cout << "______________VERTICES_DE_UMA_TRIP_" << tripAtual << "_______________" << std::endl;
                     std::cout << std::endl;
                     imprimeListaVertices(verticesTrip);
+                    if (insercaoProibida)
+                        this->listaCheckTrips[tripAtual] = 1;
                     tripAtual--;
                     verticesTrip.clear();
                 }
@@ -330,15 +366,15 @@ listavertices_t Grafo::insereClientes(listavertices_t listaCandidatos, listavert
             calculaTamanhoTripK(verticesTrip, tripAtual);
             imprimeListaTripTour();
 
-            //Tratamento para trip > tam permitido, caso contrario isso:
-            if(this->listaTamanhoTrips[tripAtual] >= this->listaTamanhoMaxTrips[tripAtual]){
+            // //Tratamento para trip > tam permitido, caso contrario isso:
+            // if(this->listaTamanhoTrips[tripAtual] >= this->listaTamanhoMaxTrips[tripAtual]){
                 
-            }
-            else{
+            // }
+            // else{
                 listaCandidatos.insert(listaCandidatos.begin() + i, v);
                 int posicao = getVerticeIndex(clientesCandidatos, v);
                 clientesCandidatos.erase(clientesCandidatos.begin() + posicao);
-            }
+            // }
             //Depois tratar se totalTour > Tmax
 
         }

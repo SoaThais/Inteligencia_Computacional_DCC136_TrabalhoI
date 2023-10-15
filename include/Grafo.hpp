@@ -20,7 +20,6 @@ using listavariancias_t = std::vector<double>;
 using listatour_t = std::vector<float>;
 using listaids_t = std::vector<size_t>;
 
-
 // using listcand_t = std::set<size_t>;
 // using solList_t = std::list<std::vector<size_t>>;
 
@@ -34,6 +33,7 @@ class Grafo {
         size_t _tMax;
         listavertices_t listaVertices;
         listavariancias_t listaVariancias;
+        listatour_t listaCheckTrips;
         listatour_t listaTamanhoTrips;
         listatour_t listaTamanhoMaxTrips;
         double** matrizDist;
@@ -46,6 +46,7 @@ class Grafo {
         Vertice& getVerticeById(size_t id);
         int getVerticeIndex(listavertices_t verticeVector, Vertice v);
         void calculaTamanhoTripK(listavertices_t verticesTour, size_t k);
+        bool insercaoViavel(size_t i, size_t j, size_t k);
 
         //Auxiliares
         double distanciaEuclidiana(Vertice a, Vertice b);
@@ -58,7 +59,7 @@ class Grafo {
 
         //Auxiliares Solucao
         listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis, int nTrips);
-        Vertice selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos);
+        Vertice selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t);
         listavertices_t insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos);
 
 
