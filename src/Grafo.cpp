@@ -839,7 +839,7 @@ void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
             /*--------------------------------*/
 
             printCustomHeader("INICIO BUSCA LOCAL");
-            buscaLocal(solucao, todosClientesCandidatos);
+            buscaLocal(melhorSolucao, todosClientesCandidatos);
             printCustomHeader("FIM BUSCA LOCAL");
 
             /*--------------------------------*/
