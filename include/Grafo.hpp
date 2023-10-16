@@ -20,10 +20,6 @@ using listavariancias_t = std::vector<double>;
 using listatour_t = std::vector<float>;
 using listaids_t = std::vector<size_t>;
 
-// using listcand_t = std::set<size_t>;
-// using solList_t = std::list<std::vector<size_t>>;
-
-
 class Grafo {
     private:
         std::string _graphName;
@@ -33,6 +29,7 @@ class Grafo {
         size_t _tMax;
         double _scoreSol;
         double _custoSol;
+        listavertices_t listaSolucao;
         listavertices_t listaVertices;
         listavariancias_t listaVariancias;
         listatour_t listaCheckTrips;
@@ -44,6 +41,7 @@ class Grafo {
         //Sets e Checks Trips
         void setaScoreSol(double score);
         void setaCustoSol(double custo);
+        void setaListaSol(listavertices_t listaSolucao);
         void setaTamMaxTrips(listatour_t tamTrips);
         void setaTamTrips(listatour_t tamTrips);
         void setaTamBestTrips(listatour_t tamTrips);
@@ -115,6 +113,8 @@ class Grafo {
         double getCustoTour();
         double getScoreSol() const { return this->_scoreSol; };
         double getCustoSol() const { return this->_custoSol; };
+        listavertices_t getListaSol() const { return this->listaSolucao; };
+
 };
 
 #endif // GRAFO_HPP

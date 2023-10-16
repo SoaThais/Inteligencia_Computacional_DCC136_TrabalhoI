@@ -5,13 +5,14 @@
 #include <vector>
 #include <cstdlib>
 #include <chrono>
+#include <cstdio>
 
 #include "Grafo.hpp"
 
 using relogio_t = std::chrono::high_resolution_clock;
 using tempo_t = relogio_t::time_point;
 
-#define EXPECTED_ARGC(argc) ((argc) == 5 || (argc) == 6)
+#define EXPECTED_ARGC(argc) ((argc) == 6 || (argc) == 7)
 
 #define ERR_INVALID_ARGC        1
 #define ERR_COULD_NOT_OPEN_FILE 2
@@ -23,6 +24,7 @@ struct InfoSolucao {
     double score;
     double qualidade;
     double tempoGasto;
+    listavertices_t vertices;
 };
 
 
@@ -51,12 +53,11 @@ int main(int argc, char **argv)
 
     if (!EXPECTED_ARGC(argc)) {
         std::cerr << "Uso: " << argv[0]
-            << " ARQUIVO_ENTRADA ALGORITMO MAX_IT MAX_EXEC <SEED>\n";
+            << " ARQUIVO_ENTRADA ARQUIVO_SAIDA ALGORITMO MAX_IT MAX_EXEC <SEED>\n";
         return ERR_INVALID_ARGC;
     }
 
     std::ifstream arqEntrada;
-    std::ofstream arqSaida;
 
     arqEntrada.open(argv[1]);
     if (!arqEntrada.is_open()) {
@@ -77,9 +78,9 @@ int main(int argc, char **argv)
 
     std::vector<InfoSolucao> solucoesDeG;
 
-    int algorithmID = std::stol(argv[2]);
-    size_t max_it = std::stol(argv[3]);
-    size_t max_exec = std::stol(argv[4]);
+    int algorithmID = std::stol(argv[3]);
+    size_t max_it = std::stol(argv[4]);
+    size_t max_exec = std::stol(argv[5]);
 
     for(size_t numExec = 1; numExec <= max_exec; numExec++){
 
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
 
         long seed = time(NULL)*time(NULL)/rand();
         if (argc == 5) {
-            seed = std::stol(argv[4]);
+            seed = std::stol(argv[6]);
         }
         srand(seed);
 
@@ -113,15 +114,52 @@ int main(int argc, char **argv)
         info.score = g.getScoreSol();
         info.qualidade = info.score - info.custo;
         info.tempoGasto = time;
+        listavertices_t listaSolucoes = g.getListaSol();
+        for (const Vertice& vertex : listaSolucoes) {
+            info.vertices.push_back(vertex);
+        }
         solucoesDeG.push_back(info);
+    }
+
+    std::ofstream arqSaida;
+
+    arqSaida.open(argv[2]);
+    if (!arqSaida.is_open()) {
+        std::cerr << argv[0]
+            << ": não foi possível abrir o arquivo `"
+            << argv[2] << "`\n";
+        return ERR_COULD_NOT_OPEN_FILE;
     }
 
     printTitle("RESULTADOS DAS EXECUÇÕES");
     for (const InfoSolucao& solucao : solucoesDeG) {
-        std::cout << "Número da Execução: " << solucao.execucao << std::endl;
-        std::cout << "Custo da Solução: " << solucao.custo << std::endl;
-        std::cout << "Score da Solução: " << solucao.score << std::endl;
-        std::cout << "Qualidade da Solução: " << solucao.qualidade << std::endl;
-        std::cout << "Tempo Gasto: " << solucao.tempoGasto << std::endl;
+        arqSaida << "Número da Execução: " << solucao.execucao << std::endl;
+        arqSaida << "Custo da Solução: " << solucao.custo << std::endl;
+        arqSaida << "Score da Solução: " << solucao.score << std::endl;
+        arqSaida << "Qualidade da Solução: " << solucao.qualidade << std::endl;
+        arqSaida << "Tempo Gasto: " << solucao.tempoGasto << std::endl;
+        arqSaida << "Vertices da Solução: ";
+        for (const Vertice& vertex : solucao.vertices) {
+            if(vertex.id()!=0){arqSaida << "-";}
+            if(vertex.isHotel()){ arqSaida << "H"; }
+            arqSaida << vertex.id();
+        }
+        arqSaida << std::endl;
+        arqSaida << "Coordenadas dos Vertices da Solução: ";
+        for (const Vertice& vertex : solucao.vertices) {
+            arqSaida << "(" << vertex.x() << "," << vertex.y() << ")";
+        }
+        arqSaida << std::endl;
+        arqSaida << "__________________________________" << std::endl;
+
     }
+    arqSaida.close();
+
+    std::string oldName = argv[2]; // nome antigo do arquivo
+    std::string newName = instanceName + "-output.txt";
+    if (std::rename(oldName.c_str(), newName.c_str()) == 0) { // renomeia o arquivo
+        std::cout << "Arquivo renomeado com sucesso." << std::endl;
+    }
+
+    arqSaida.close();
 }

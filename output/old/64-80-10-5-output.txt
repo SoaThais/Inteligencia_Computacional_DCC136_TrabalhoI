@@ -1,0 +1,60 @@
+Número da Execução: 1
+Custo da Solução: 74.1838
+Score da Solução: 678
+Qualidade da Solução: 603.816
+Tempo Gasto: 5491
+__________________________________
+Número da Execução: 2
+Custo da Solução: 72.4284
+Score da Solução: 486
+Qualidade da Solução: 413.572
+Tempo Gasto: 3953
+__________________________________
+Número da Execução: 3
+Custo da Solução: 76.2267
+Score da Solução: 630
+Qualidade da Solução: 553.773
+Tempo Gasto: 5196
+__________________________________
+Número da Execução: 4
+Custo da Solução: 75.3295
+Score da Solução: 492
+Qualidade da Solução: 416.67
+Tempo Gasto: 4449
+__________________________________
+Número da Execução: 5
+Custo da Solução: 73.6233
+Score da Solução: 558
+Qualidade da Solução: 484.377
+Tempo Gasto: 4928
+__________________________________
+Número da Execução: 6
+Custo da Solução: 73.214
+Score da Solução: 570
+Qualidade da Solução: 496.786
+Tempo Gasto: 5498
+__________________________________
+Número da Execução: 7
+Custo da Solução: 75.6406
+Score da Solução: 462
+Qualidade da Solução: 386.359
+Tempo Gasto: 4490
+__________________________________
+Número da Execução: 8
+Custo da Solução: 75.3015
+Score da Solução: 456
+Qualidade da Solução: 380.698
+Tempo Gasto: 4129
+__________________________________
+Número da Execução: 9
+Custo da Solução: 77.8543
+Score da Solução: 612
+Qualidade da Solução: 534.146
+Tempo Gasto: 5662
+__________________________________
+Número da Execução: 10
+Custo da Solução: 74.0477
+Score da Solução: 450
+Qualidade da Solução: 375.952
+Tempo Gasto: 5121
+__________________________________

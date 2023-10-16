@@ -45,6 +45,9 @@ void Grafo::setaScoreSol(double score){
 void Grafo::setaCustoSol(double custo){
     this->_custoSol = custo;
 }
+void Grafo::setaListaSol(listavertices_t listaSolucaoNova){
+    this->listaSolucao = listaSolucaoNova;
+}
 void Grafo::setaTamMaxTrips(listatour_t tamTrips) {
     this->listaTamanhoMaxTrips = tamTrips;
 }
@@ -877,6 +880,7 @@ void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
         for(size_t it = 0; it <= itRodadas; it++){
             std::cout << "Qualidade de solução em - " << it << " é: " << qualidadeDasSolucoesBL[it] << std::endl;
         }
+        setaListaSol(melhorSolucao);
         imprimeListaVertices(melhorSolucao);
         imprimeListaBestTripTour();
         break;
@@ -1053,3 +1057,4 @@ void Grafo::imprimeListaBestTripTour(){
     std::cout << "___________________________________________________________" << std::endl;
     std::cout << std::endl;
 }
+
