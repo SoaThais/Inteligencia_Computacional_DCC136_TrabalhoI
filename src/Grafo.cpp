@@ -342,28 +342,34 @@ listavertices_t Grafo::selecionaHoteisCandidatos(listavertices_t hoteis) {
     /*----SELECIONA HOTEIS VIAVEIS----*/
     /*--------------------------------*/
 
-    resultado.push_back(hoteis[0]);
+    bool randViavel;
 
-    //Acrescrentar do while para escapar do else
-    for (size_t i = 0; i < numeroDeTrips()-1; i++) {
-        listavertices_t hoteisViaveis = selecionaHoteisViaveis(hoteis, resultado[i], i);
+    do {
+        randViavel = true;
 
-        if(hoteisViaveis.size() > 1){
-            int j = 1 + rand() % (hoteisViaveis.size() - 1);
-            do
-            {
-                j = 1 + rand() % (hoteisViaveis.size() - 1);
-            } while (j == 1);
-            resultado.push_back(hoteisViaveis[j]);
+        resultado.push_back(hoteis[0]);
+
+        for (size_t i = 0; i < numeroDeTrips() - 1; i++) {
+            listavertices_t hoteisViaveis = selecionaHoteisViaveis(hoteis, resultado[i], i);
+
+            if(hoteisViaveis.size() > 1){
+                int j = 1 + rand() % (hoteisViaveis.size() - 1);
+                do
+                {
+                    j = 1 + rand() % (hoteisViaveis.size() - 1);
+                } while (j == 1);
+                resultado.push_back(hoteisViaveis[j]);
+            }
+            else if (hoteisViaveis.size() == 1){
+                resultado.push_back(hoteisViaveis[0]);
+            }
+            else{
+                randViavel = false;
+                resultado.clear();
+            }
         }
-        else if (hoteisViaveis.size() == 1){
-            resultado.push_back(hoteisViaveis[0]);
-        }
-        else{
-            std::cout << "Randomização não permitiu solução viável para Trips!" << std::endl;
-            throw ERR_NOT_VIABLE;
-        }
-    }
+    } while(!randViavel);
+
     resultado.push_back(hoteis[1]);
 
     /*--------------------------------*/
@@ -708,10 +714,6 @@ void Grafo::buscaLocal(std::vector<Vertice>& solucao, listavertices_t& clientesR
             continue;
         }
 
-        /*--------------------------------*/
-        /*---------AVALIA-MOVIMENTO-------*/
-        /*--------------------------------*/
-
         double custoAtual = calculaCustoSolucao(solucao);
         double custoNovo = calculaCustoSolucao(novaSolucao);
         double scoreAtual = calculaScoreSolucao(solucao);
@@ -791,6 +793,7 @@ void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
         solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
 
         printCustomHeader("FIM GULOSO");
+        imprimeListaVertices(solucao);
         imprimeListaTripTour();
         std::cout << "CUSTO ENCONTRADO GULOSO: " << calculaCustoSolucao(solucao) << std::endl;
         break;
@@ -808,6 +811,7 @@ void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
         printCustomHeader("INICIO GULOSO DA BUSCA LOCAL");
         solucao = guloso(todosHoteisCandidatos, todosClientesCandidatos);
         printCustomHeader("FIM GULOSO DA BUSCA LOCAL");
+        imprimeListaVertices(solucao);
         imprimeListaTripTour();
 
         custosDasSolucoesBL.push_back(calculaCustoSolucao(solucao));
@@ -873,6 +877,7 @@ void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
         for(size_t it = 0; it <= itRodadas; it++){
             std::cout << "Qualidade de solução em - " << it << " é: " << qualidadeDasSolucoesBL[it] << std::endl;
         }
+        imprimeListaVertices(melhorSolucao);
         imprimeListaBestTripTour();
         break;
 
@@ -883,7 +888,6 @@ void Grafo::geraSolucao(int flagSolucao, size_t maxIt){
 
 
 }
-
 
 
 /*-----------------------------------------------------------------------------------------------------*/
