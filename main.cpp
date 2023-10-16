@@ -111,7 +111,7 @@ int main(int argc, char **argv)
         info.execucao = numExec;
         info.custo = g.getCustoSol();
         info.score = g.getScoreSol();
-        info.qualidade = info.score/info.custo;
+        info.qualidade = info.score - info.custo;
         info.tempoGasto = time;
         solucoesDeG.push_back(info);
     }

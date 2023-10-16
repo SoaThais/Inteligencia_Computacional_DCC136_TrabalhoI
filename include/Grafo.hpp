@@ -37,6 +37,7 @@ class Grafo {
         listavariancias_t listaVariancias;
         listatour_t listaCheckTrips;
         listatour_t listaTamanhoTrips;
+        listatour_t listaTamanhoBestTrips;
         listatour_t listaTamanhoMaxTrips;
         double** matrizDist;
 
@@ -45,6 +46,7 @@ class Grafo {
         void setaCustoSol(double custo);
         void setaTamMaxTrips(listatour_t tamTrips);
         void setaTamTrips(listatour_t tamTrips);
+        void setaTamBestTrips(listatour_t tamTrips);
         void setaCheckTrips(listatour_t tamTrips);
         void atualizaIdTrips(Vertice& v, size_t t, size_t t2);
 
@@ -55,8 +57,11 @@ class Grafo {
 
         //Viabilidade
         void atualizaTamanhoTripT(listaids_t verticesQuebrados, size_t t);
+        void atualizaTamanhoTripTRemocao(Vertice verticeArrancado, size_t t);
         double refazCalculoAresta(listaids_t verticesQuebrados);
+        double refazCalculoArestaRemocao(listaids_t verticesQuebrados);
         bool insercaoViavel(listaids_t verticesQuebrados, size_t t);
+        bool removeViavel(Vertice verticeArrancado, size_t t);
 
         //Auxiliares
         double distanciaEuclidiana(Vertice a, Vertice b);
@@ -74,7 +79,7 @@ class Grafo {
         listavertices_t selecionaHoteisCandidatos(listavertices_t hoteis);
         Vertice selecionaClienteIdeal(listaids_t insereEntre, listavertices_t clientesCandidatos, size_t t);
         bool condicoesParadaClientes(int& breakFlag, listavertices_t clientesCandidatos);
-        listavertices_t insereClientes(listavertices_t listaCandidatos, listavertices_t clientesCandidatos);
+        listavertices_t insereClientes(listavertices_t listaCandidatos, listavertices_t& clientesCandidatos);
 
 
     public:
@@ -83,8 +88,8 @@ class Grafo {
         //Solucao
         double calculaCustoSolucao(listavertices_t solucao);
         double calculaScoreSolucao(listavertices_t solucao);
-        listavertices_t guloso(listavertices_t todosHoteisCandidatos, listavertices_t todosVerticesCandidatos);
-        void buscaLocal(std::vector<Vertice>& solucao);
+        listavertices_t guloso(listavertices_t todosHoteisCandidatos, listavertices_t& todosVerticesCandidatos);
+        void buscaLocal(std::vector<Vertice>& solucao, listavertices_t& clientesRestantes);
         listavertices_t rvnd(listavertices_t listaCandidatos);
         void geraSolucao(int flagSolucao, size_t maxIt);
 
@@ -97,6 +102,7 @@ class Grafo {
         void imprimeListaVertices(listavertices_t listaVertice);
         void imprimeListaOrdenada(listavertices_t verticesToPrint, size_t idOrigem);
         void imprimeListaTripTour();
+        void imprimeListaBestTripTour();
 
         //Gets
         Vertice& getVerticeById(size_t id){ return this->listaVertices.at(id); }
